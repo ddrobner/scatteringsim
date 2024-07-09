@@ -74,4 +74,10 @@ def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: flo
         q_spec = p.map(quenched_spectrum_wrapper, [((i, *arg), kwargs) for i in sim_data])
         p.close()
         p.join()
-    return q_spec
+
+    # wrap the list flattening and quenched spectrum computation all into one
+    q_spec_flat = [l
+                   for ls in q_spec
+                   for l in ls
+                   ]
+    return q_spec_flat
