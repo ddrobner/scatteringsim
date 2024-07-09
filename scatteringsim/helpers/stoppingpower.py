@@ -1,5 +1,12 @@
 import pandas as pd
 from numpy import interp, float64
+from pathlib import Path
+
+def read_stopping_power(filename) -> pd.DataFrame:
+    stoppingpowers = pd.read_csv(Path(filename))
+    # rename cols to make them easier to reference
+    stoppingpowers.columns = ["KE", "electron", "nuclear", "total"]
+    return stoppingpowers
 
 def stp_interp(energy:float, stp: pd.DataFrame) -> float64:
     # NOTE this assumes that the stopping powers are sorted

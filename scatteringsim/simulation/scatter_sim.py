@@ -6,10 +6,12 @@ from scatteringsim.helpers.alphapath import gen_alpha_path
 from multiprocessing import Pool, cpu_count
 from math import floor
 
+import pandas as pd
+
 import random
 import copy
 
-def scatter_sim(e_0: float, alpha_path = list, stepsize=0.001, density=0.8562, filename="diffcx_2p02MeV.csv") -> AlphaEvent:
+def scatter_sim(e_0: float, alpha_path : list, stepsize=0.001, density=0.8562, filename="diffcx_2p02MeV.csv") -> AlphaEvent:
     # TODO add ability to get scattering angles out
     # we can do the binning/etc later
 
@@ -42,8 +44,8 @@ def sim_wrapper(arg):
     args, kwargs = arg
     return run_sim_instance(*args, **kwargs)
 
-def start_sim(e_0, n_particles, stepsize=0.001, nbins=40, epsilon=0.1, density=0.8562):
-    alpha_path = gen_alpha_path(e_0, epsilon=epsilon, stepsize=stepsize)
+def start_sim(e_0, n_particles, stp, stepsize=0.001, nbins=40, epsilon=0.1, density=0.8562):
+    alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
     arg = (e_0, alpha_path)
     kwargs = {'stepsize': stepsize, 'nbins': nbins, 'epsilon': epsilon, 'density': density}
     with Pool(floor((2/3)*cpu_count())) as p:
@@ -53,14 +55,15 @@ def start_sim(e_0, n_particles, stepsize=0.001, nbins=40, epsilon=0.1, density=0
 
     return sim_data
 
-def quenched_spectrum(sim_data: AlphaEvent, output_list: list, proton_factor: float, alpha_factor: float=0.1) -> None:
+def quenched_spectrum(sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> None:
+    q_spec = []
     a_diffs = []
     a = 1
     while a < len(sim_data.alpha_path):
         a_diffs.append(abs(sim_data.alpha_path[a] - sim_data.alpha_path[a-1]))
         a += 1
-    output_list.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
-    #return q_spec
+    q_spec.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
+    return q_spec
 
 def quenched_spectrum_wrapper(arg):
     args, kwargs = arg
@@ -69,10 +72,16 @@ def quenched_spectrum_wrapper(arg):
 def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: float, alpha_factor: float=0.1) -> list[list]:
     q_spec = []
     arg = (proton_factor,)
-    kwargs = {'alpha_factor': 0.1}
+    kwargs = {'alpha_factor': alpha_factor}
+
     with(Pool(floor((2/3)*cpu_count()))) as p:
-        q_spec = p.map(quenched_spectrum_wrapper, [((i, q_spec, *arg), kwargs) for i in sim_data])
+        q_spec = p.map(quenched_spectrum_wrapper, [((i, *arg), kwargs) for i in sim_data])
         p.close()
         p.join()
 
-    return q_spec
+    q_spec_flattened = [l
+                        for ls in q_spec
+                        for l in ls
+                        ]
+
+    return q_spec_flattened
