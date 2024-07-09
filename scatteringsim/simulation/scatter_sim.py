@@ -53,8 +53,7 @@ def start_sim(e_0, n_particles, stepsize=0.001, nbins=40, epsilon=0.1, density=0
 
     return sim_data
 
-def quenched_spectrum(sim_data: AlphaEvent, output_list: list, proton_factor: float, alpha_factor: float=0.1) -> list:
-    #q_spec = []
+def quenched_spectrum(sim_data: AlphaEvent, output_list: list, proton_factor: float, alpha_factor: float=0.1) -> None:
     a_diffs = []
     a = 1
     while a < len(sim_data.alpha_path):
