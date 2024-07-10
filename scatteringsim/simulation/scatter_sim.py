@@ -41,20 +41,20 @@ def scatter_sim(e_0: float, alpha_path : list, stp, stepsize=0.001, epsilon=0.1,
 
     return AlphaEvent(alpha_path, proton_event_path, scatter_e)
 
-def run_sim_instance(e_0, alpha_path, stepsize=0.0001, nbins=80, epsilon=0.1, density=0.8562):
-    run_data = scatter_sim(e_0, alpha_path, density=density, stepsize=stepsize)
-    return run_data
+#def run_sim_instance(e_0, alpha_path, stp, stepsize=0.0001, nbins=80, epsilon=0.1, density=0.8562):
+#    run_data = scatter_sim(e_0, alpha_path, stp, density=density, stepsize=stepsize)
+#    return run_data
 
-def sim_wrapper(arg):
-    args, kwargs = arg
-    return run_sim_instance(*args, **kwargs)
+#def sim_wrapper(arg):
+#    args, kwargs = arg
+#    return scatter_sim(*args, **kwargs)
 
 def start_sim(e_0, n_particles, stp, stepsize=0.001, nbins=40, epsilon=0.1, density=0.8562):
     alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
     arg = (e_0, alpha_path, stp)
     kwargs = {'stepsize': stepsize, 'nbins': nbins, 'epsilon': epsilon, 'density': density}
     with Pool(floor((2/3)*cpu_count())) as p:
-        sim_data = p.map(sim_wrapper, [(arg, kwargs) for i in range(n_particles)])
+        sim_data = p.map(scatter_sim, [(arg, kwargs) for i in range(n_particles)])
         p.close()
         p.join()
 
@@ -71,17 +71,13 @@ def quenched_spectrum(sim_data: AlphaEvent,  proton_factor: float, alpha_factor:
     q_spec.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
     return q_spec
 
-def quenched_spectrum_wrapper(arg):
-    args, kwargs = arg
-    return quenched_spectrum(*args, **kwargs)
-
 def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: float, alpha_factor: float=0.1) -> list[list]:
     q_spec = []
     arg = (proton_factor,)
     kwargs = {'alpha_factor': alpha_factor}
 
     with(Pool(floor((2/3)*cpu_count()))) as p:
-        q_spec = p.map(quenched_spectrum_wrapper, [((i, *arg), kwargs) for i in sim_data])
+        q_spec = p.map(quenched_spectrum, [((i, *arg), kwargs) for i in sim_data])
         p.close()
         p.join()
 
