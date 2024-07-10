@@ -41,7 +41,7 @@ def scaled_diff_cx(theta, ke, fname) -> np.float64:
     # so, we just take the left endpoint as our x-value
     theta_min = 0.1
     scale = 1/(diff_cx(theta_min, ke, fname))
-    return diff_cx(theta,ke)*scale
+    return diff_cx(theta,ke, fname)*scale
 
 def scattering_angle(ke, fname) -> np.float64:
     theta_min = 0.1
