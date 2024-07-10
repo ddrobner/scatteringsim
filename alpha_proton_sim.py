@@ -7,7 +7,7 @@ import random
 
 stp = read_stopping_power("stoppingpowers/lab.csv")
 
-sim_data = start_sim(8, 10000, stp, nbins=50, stepsize=1E-6)
+sim_data = start_sim(8, 10000, stp, stepsize=1E-6)
 q_spec = quenched_spectrum_multithread(sim_data, 0.4)
 
 plt.rcParams['figure.figsize'] = (12, 8)
