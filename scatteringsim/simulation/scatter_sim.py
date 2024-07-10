@@ -30,7 +30,7 @@ def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001
     for s in range(len(a_path)):
         if scattering_probability(e_i, stepsize, rsum, density=density) > random.random():
             scatter_angle = scattering_angle(a_path[s], filename)
-            transfer_e = energy_transfer(a_path[s], scatter_angle=scatter_angle)
+            transfer_e = energy_transfer(a_path[s], filename, scatter_angle=scatter_angle)
             a_path[s] = transfer_e.e_alpha
             #a_path = a_path[0:s-1]
             alpha_out.xtend(a_path[0:s-1])
