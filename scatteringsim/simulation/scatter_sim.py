@@ -45,7 +45,7 @@ def sim_wrapper(arg):
     args, kwargs = arg
     return scatter_sim(*args, **kwargs)
 
-def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="stoppingpowers/diffcx_2p02MeV.csv"):
+def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="crossections/diffcx_2p02MeV.csv"):
     alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
     arg = (e_0, alpha_path, stp)
     kwargs = {'stepsize': stepsize, 'epsilon': epsilon, 'density': density, 'filename': filename}

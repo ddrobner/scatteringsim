@@ -4,7 +4,7 @@ import pandas as pd
 from random import uniform, random
 from scipy.constants import Avogadro
 
-def diff_cx(theta, ke, fname="diffcx_2p02MeV.csv") -> np.float64:
+def diff_cx(theta, ke, fname : str = '') -> np.float64:
     exp_cx = pd.read_csv(fname)
     theta = np.rad2deg(theta)
     for k in exp_cx.index:
@@ -18,7 +18,7 @@ def diff_cx(theta, ke, fname="diffcx_2p02MeV.csv") -> np.float64:
         elif theta >= list(exp_cx['theta'])[-1]:
             return 2*np.pi*((list(exp_cx['sigma'])[-1] - list(exp_cx['sigma'])[-2])/(list(exp_cx['theta'])[-1] - list(exp_cx['theta'])[-2]))*theta
 
-def diffcx_riemann_sum(meshsize=0.01, fname='diffcx_2p02MeV.csv', theta_min=0.1, ke=8) -> np.float64:
+def diffcx_riemann_sum(meshsize=0.01, fname : str = '', theta_min=0.1, ke=8) -> np.float64:
     x_points = np.arange(theta_min, 1, meshsize)
     y_points = [diff_cx(i, ke, fname=fname) for i in x_points]
     return np.trapz(y_points, x_points, meshsize)
