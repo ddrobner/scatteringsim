@@ -20,7 +20,7 @@ def diff_cx(theta, ke, fname="diffcx_2p02MeV.csv") -> np.float64:
 
 def diffcx_riemann_sum(meshsize=0.01, fname='diffcx_2p02MeV.csv', theta_min=0.1, ke=8) -> np.float64:
     x_points = np.arange(theta_min, 1, meshsize)
-    y_points = [diff_cx(i, ke) for i in x_points]
+    y_points = [diff_cx(i, ke, fname=fname) for i in x_points]
     return np.trapz(y_points, x_points, meshsize)
 
 
