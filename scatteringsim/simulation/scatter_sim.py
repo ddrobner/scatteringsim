@@ -56,7 +56,9 @@ def start_sim(e_0, n_particles, stp, stepsize=0.001, nbins=40, epsilon=0.1, dens
     arg_s = (e_0, alpha_path, stp)
     kwarg_s = {'stepsize': stepsize, 'nbins': nbins, 'epsilon': epsilon, 'density': density}
     with Pool() as p:
-        sim_data = p.map(scatter_sim, [(arg_s, kwarg_s) for i in range(n_particles)])
+        #sim_data = p.map(scatter_sim, [(arg_s, kwarg_s) for i in
+        #range(n_particles)])
+        sim_data = p.map(partial(start_sim, kwarg_s), [arg_s for i in range(n_particles)])
         p.close()
         p.join()
 
@@ -79,7 +81,9 @@ def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: flo
     kwargs = {'alpha_factor': alpha_factor}
 
     with(Pool(cpu_count())) as p:
-        q_spec = p.map(quenched_spectrum, [((i, *arg), kwargs) for i in sim_data])
+        #q_spec = p.map(quenched_spectrum, [((i, *arg), kwargs) for i in
+        #sim_data])
+        q_spec = p.map(partial(quenched_spectrum, kwargs), [(i, *arg) for i in sim_data])
         p.close()
         p.join()
 
