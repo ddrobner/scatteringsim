@@ -39,7 +39,7 @@ def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001
             alpha_out.append(gen_alpha_path(transfer_e.e_alpha, stp, stepsize=stepsize, epsilon=epsilon))
             break
 
-    return AlphaEvent(alpha_path, proton_event_path, scatter_e)
+    return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
 def sim_wrapper(arg):
     args, kwargs = arg
