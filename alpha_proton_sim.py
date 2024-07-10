@@ -7,12 +7,12 @@ import random
 
 stp = read_stopping_power("stoppingpowers/lab.csv")
 
-sim_data = start_sim(8, 10000, stp, stepsize=1E-6, filename='crossections/diffcx_2p02MeV.csv')
-q_spec = quenched_spectrum_multithread(sim_data, 0.4)
+sim_data = start_sim(8, 20000, stp, stepsize=1E-6, filename='crossections/diffcx_2p02MeV.csv')
+q_spec = quenched_spectrum_multithread(sim_data, 0.35)
 
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['axes.formatter.useoffset'] = False
-nhit = 200 
+nhit = 300 
 
 q_spec_smeared = []
 
@@ -33,4 +33,4 @@ plt.xlabel("Energy (MeV)")
 plt.ylabel("Count")
 plt.xlim((0.6, 2.5))
 plt.tight_layout()
-plt.savefig("10k_quenched_smeared_0p4q_new2.jpg")
+plt.savefig("10k_quenched_smeared_0p35q_new2.jpg")
