@@ -11,7 +11,7 @@ import pandas as pd
 import random
 import copy
 
-def scatter_sim(e_0: float, alpha_path : list, stp, stepsize=0.001, epsilon=0.1, density=0.8562, filename="diffcx_2p02MeV.csv") -> AlphaEvent:
+def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="diffcx_2p02MeV.csv") -> AlphaEvent:
     # TODO add ability to get scattering angles out
     # we can do the binning/etc later
 
@@ -45,7 +45,7 @@ def sim_wrapper(arg):
     args, kwargs = arg
     return scatter_sim(*args, **kwargs)
 
-def start_sim(e_0, n_particles, stp, stepsize=0.001, epsilon=0.1, density=0.8562):
+def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562):
     alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
     arg = (e_0, alpha_path, stp)
     kwargs = {'stepsize': stepsize, 'epsilon': epsilon, 'density': density}
