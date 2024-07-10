@@ -2,7 +2,7 @@ from scatteringsim.helpers.crossection import scattering_angle
 from scatteringsim.structures import ScatterFrame
 import numpy as np
 
-def energy_transfer(e_i, scatter_angle=None):
+def energy_transfer(e_i, fname, scatter_angle=None):
     m_alpha = 6.646E-27 # kg
     m_proton = 1.6726E-27 # kg
 
@@ -10,7 +10,7 @@ def energy_transfer(e_i, scatter_angle=None):
     ei_j = e_i * mev_to_j
 
     if scatter_angle is None:
-        scatter_angle = scattering_angle(e_i)
+        scatter_angle = scattering_angle(e_i, fname)
     # just identifying scatter_angle as theta_1 to match the algebra
     # this is in the lab frame
     Theta = scatter_angle
