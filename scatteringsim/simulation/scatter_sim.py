@@ -33,7 +33,7 @@ def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001
             transfer_e = energy_transfer(a_path[s], filename, scatter_angle=scatter_angle)
             a_path[s] = transfer_e.e_alpha
             #a_path = a_path[0:s-1]
-            alpha_out.xtend(a_path[0:s-1])
+            alpha_out.append(a_path[0:s-1])
             proton_event_path.append(transfer_e.e_proton)
             scatter_e.append(ScatterFrame(scatter_angle, transfer_e.e_proton, scatter_angle))
             alpha_out.append(gen_alpha_path(transfer_e.e_alpha, stp, stepsize=stepsize, epsilon=epsilon))
