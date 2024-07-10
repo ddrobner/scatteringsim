@@ -41,18 +41,14 @@ def scatter_sim(e_0: float, alpha_path : list, stp, stepsize=0.001, epsilon=0.1,
 
     return AlphaEvent(alpha_path, proton_event_path, scatter_e)
 
-def run_sim_instance(e_0, alpha_path, stepsize=0.0001, nbins=80, epsilon=0.1, density=0.8562):
-    run_data = scatter_sim(e_0, alpha_path, density=density, stepsize=stepsize)
-    return run_data
-
 def sim_wrapper(arg):
     args, kwargs = arg
-    return run_sim_instance(*args, **kwargs)
+    return scatter_sim(*args, **kwargs)
 
-def start_sim(e_0, n_particles, stp, stepsize=0.001, nbins=40, epsilon=0.1, density=0.8562):
+def start_sim(e_0, n_particles, stp, stepsize=0.001, epsilon=0.1, density=0.8562):
     alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
     arg = (e_0, alpha_path, stp)
-    kwargs = {'stepsize': stepsize, 'nbins': nbins, 'epsilon': epsilon, 'density': density}
+    kwargs = {'stepsize': stepsize, 'epsilon': epsilon, 'density': density}
     with Pool(floor((2/3)*cpu_count())) as p:
         sim_data = p.map(sim_wrapper, [(arg, kwargs) for i in range(n_particles)])
         p.close()
