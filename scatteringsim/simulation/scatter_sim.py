@@ -11,7 +11,7 @@ import pandas as pd
 import random
 import copy
 
-def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="diffcx_2p02MeV.csv") -> AlphaEvent:
+def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="stoppingpowers/diffcx_2p02MeV.csv") -> AlphaEvent:
     # TODO add ability to get scattering angles out
     # we can do the binning/etc later
 
