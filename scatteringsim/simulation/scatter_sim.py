@@ -3,8 +3,7 @@ from scatteringsim.helpers.energytransfer import energy_transfer
 from scatteringsim.structures import AlphaEvent, ScatterFrame
 from scatteringsim.helpers.alphapath import gen_alpha_path
 
-from multiprocessing import Pool, cpu_count
-from math import floor
+from multiprocessing import Pool
 
 import pandas as pd
 
@@ -15,7 +14,7 @@ def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001
     # TODO add ability to get scattering angles out
     # we can do the binning/etc later
 
-    # let's set both quenchin factors to 1 in here so we can tune them later
+    # let's set both quenching factors to 1 in here so we can tune them later
     a_path = copy.deepcopy(alpha_path)
     proton_event_path = []
     e_i = e_0
