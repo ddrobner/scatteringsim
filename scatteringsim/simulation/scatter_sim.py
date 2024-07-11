@@ -76,7 +76,7 @@ def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: flo
     arg = (proton_factor,)
     kwargs = {'alpha_factor': alpha_factor}
 
-    with(Pool(floor((2/3)*cpu_count()))) as p:
+    with Pool() as p:
         q_spec = p.map(quenched_spectrum_wrapper, [((i, *arg), kwargs) for i in sim_data])
         p.close()
         p.join()
