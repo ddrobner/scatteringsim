@@ -4,6 +4,8 @@ from scatteringsim.structures import AlphaEvent, ScatterFrame
 from scatteringsim.helpers.alphapath import gen_alpha_path
 
 from multiprocessing import Pool
+from random import gauss
+from numpy import sqrt as nsqrt
 
 import pandas as pd
 
@@ -58,11 +60,17 @@ def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, stepsize=0.001, e
 def quenched_spectrum(sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> None:
     q_spec = []
     a_diffs = []
+    n_boundaries = 0
+    i = 0
     for ap in sim_data.alpha_path:
         a = 1
+        if(len(sim_data.proton_scatters) > n_boundaries and i != 0):
+            a_diffs.append(abs((sim_data.alpha_path[i-1][-1] + sim_data.proton_scatters[n_boundaries]) - ap[0]))
+            n_boundaries += 1
         while a < len(ap):
             a_diffs.append(abs(ap[a] - ap[a-1]))
             a += 1
+        i += 1
     q_spec.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
     return q_spec
 
@@ -86,3 +94,13 @@ def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: flo
                         ]
 
     return q_spec_flattened
+
+def compute_smearing(e_i, nhit):
+   return gauss(e_i*nhit, nsqrt(e_i*nhit))/nsqrt
+
+def smeared_spectrum(quenched_spectrum: list[float], nhit: int):
+    with Pool() as p:
+        smeared_spec = p.starmap(compute_smearing, [(i, nhit) for i in quenched_spectrum])
+        p.close()
+        p.join()
+    return smeared_spec
