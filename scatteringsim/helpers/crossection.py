@@ -9,14 +9,14 @@ from scipy.interpolate import bisplrep, bisplev
 def compute_interp_cx(fname : str) -> np.float64:
     cx = pd.read_csv(fname)
     energy = np.array(cx['energy'])
-    theta = np.array(cx['theta'])
+    theta = np.array([np.deg2rad(i) for i in cx['theta'].array])
     diffcx = np.array( cx['energy'] )
     return bisplrep(energy, theta, diffcx)
 
 def diff_cx(theta, ke, tck) -> np.float64:
     return bisplev(ke, theta, tck)
 
-def diffcx_riemann_sum(ke, tck, meshsize=0.01, theta_min=0.1, theta_max=1) -> np.float64:
+def diffcx_riemann_sum(ke, tck, meshsize=0.1, theta_min=0.1, theta_max=1) -> np.float64:
     x_points = np.arange(theta_min, theta_max, meshsize)
     y_points = [diff_cx(i, ke, tck) for i in x_points]
 

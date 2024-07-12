@@ -7,7 +7,7 @@ stp = read_stopping_power("stoppingpowers/lab.csv")
 
 tck = compute_interp_cx("crossections/combined.csv")
 
-sim_data = start_sim(8, 50, stp, tck, stepsize=1E-4)
+sim_data = start_sim(8, 50, stp, tck, stepsize=1E-5)
 q_spec = quenched_spectrum_multithread(sim_data, 0.35)
 
 plt.rcParams['figure.figsize'] = (12, 8)
@@ -27,6 +27,6 @@ plt.ticklabel_format(style='plain', axis='x')
 plt.title("10k Alphas Quenched Spectrum (Smeared, Quenching Factor 0.5, Stepsize $10^{-6}$)")
 plt.xlabel("Energy (MeV)")
 plt.ylabel("Count")
-plt.xlim((0.6, 2.5))
+#plt.xlim((0.6, 2.5))
 plt.tight_layout()
 plt.savefig("10k_quenched_smeared_0p35q_new2.jpg")
