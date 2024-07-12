@@ -8,6 +8,7 @@ from random import gauss
 from numpy import sqrt as nsqrt
 
 import pandas as pd
+from numpy import pi
 
 import random
 import copy
@@ -25,11 +26,13 @@ def scatter_sim(e_0: float, alpha_path : list, stp : pd.DataFrame, tck, stepsize
 
     # great, so now we have our pre-baked alpha energy
     # now we can iterate over the list and do the proton scattering
+    scattered = False
     scatter_e = []
     alpha_out = []
     for s in range(len(a_path)):
-        rsum = diffcx_riemann_sum(a_path[s], tck)
+        rsum = diffcx_riemann_sum(a_path[s], tck, theta_max=pi/2)
         if scattering_probability(a_path[s], stepsize, rsum, density=density) > random.random():
+            scattered = True
             scatter_angle = scattering_angle(a_path[s], tck)
             transfer_e = energy_transfer(a_path[s], tck, scatter_angle=scatter_angle)
             a_path[s] = transfer_e.e_alpha
@@ -39,6 +42,8 @@ def scatter_sim(e_0: float, alpha_path : list, stp : pd.DataFrame, tck, stepsize
             scatter_e.append(ScatterFrame(scatter_angle, transfer_e.e_proton, scatter_angle))
             alpha_out.append(gen_alpha_path(transfer_e.e_alpha, stp, stepsize=stepsize, epsilon=epsilon))
             break
+    if not scattered:
+        alpha_out.append(a_path)
 
     return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
