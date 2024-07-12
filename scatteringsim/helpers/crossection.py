@@ -10,7 +10,7 @@ def compute_interp_cx(fname : str) -> np.float64:
     cx = pd.read_csv(fname)
     energy = np.array(cx['energy'])
     theta = np.array(cx['theta'])
-    diffcx = np.array[cx['energy']]
+    diffcx = np.array( cx['energy'] )
     return bisplrep(energy, theta, diffcx)
 
 def diff_cx(theta, ke, tck) -> np.float64:
