@@ -12,7 +12,7 @@ import pandas as pd
 import random
 import copy
 
-def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="stoppingpowers/diffcx_2p02MeV.csv") -> AlphaEvent:
+def scatter_sim(e_0: float, alpha_path : list, stp : pd.DataFrame, tck, stepsize=0.001, epsilon=0.1, density=0.8562) -> AlphaEvent:
     # TODO add ability to get scattering angles out
     # we can do the binning/etc later
 
@@ -26,12 +26,12 @@ def scatter_sim(e_0: float, alpha_path : list, stp: pd.DataFrame, stepsize=0.001
     # great, so now we have our pre-baked alpha energy
     # now we can iterate over the list and do the proton scattering
     scatter_e = []
-    rsum = diffcx_riemann_sum(filename)
     alpha_out = []
     for s in range(len(a_path)):
-        if scattering_probability(e_i, stepsize, rsum, density=density) > random.random():
-            scatter_angle = scattering_angle(a_path[s], filename)
-            transfer_e = energy_transfer(a_path[s], filename, scatter_angle=scatter_angle)
+        rsum = diffcx_riemann_sum(a_path[s], tck)
+        if scattering_probability(a_path[s], stepsize, rsum, density=density) > random.random():
+            scatter_angle = scattering_angle(a_path[s], tck)
+            transfer_e = energy_transfer(a_path[s], tck, scatter_angle=scatter_angle)
             a_path[s] = transfer_e.e_alpha
             #a_path = a_path[0:s-1]
             alpha_out.append(a_path[0:s-1])
@@ -46,9 +46,9 @@ def sim_wrapper(arg):
     args, kwargs = arg
     return scatter_sim(*args, **kwargs)
 
-def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, stepsize=0.001, epsilon=0.1, density=0.8562, filename="crossections/diffcx_2p02MeV.csv"):
+def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, tck, stepsize=0.001, epsilon=0.1, density=0.8562, filename="crossections/diffcx_2p02MeV.csv"):
     alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
-    arg = (e_0, alpha_path, stp)
+    arg = (e_0, alpha_path, stp, tck)
     kwargs = {'stepsize': stepsize, 'epsilon': epsilon, 'density': density, 'filename': filename}
     with Pool() as p:
         sim_data = p.map(sim_wrapper, [(arg, kwargs) for i in range(n_particles)])
