@@ -7,7 +7,7 @@ stp = read_stopping_power("stoppingpowers/lab.csv")
 
 tck = compute_interp_cx("crossections/combined.csv")
 
-sim_data = start_sim(8, 20000, stp, stepsize=1E-6, filename='crossections/diffcx_2p02MeV.csv')
+sim_data = start_sim(8, 50, stp, tck, stepsize=1E-4)
 q_spec = quenched_spectrum_multithread(sim_data, 0.35)
 
 plt.rcParams['figure.figsize'] = (12, 8)

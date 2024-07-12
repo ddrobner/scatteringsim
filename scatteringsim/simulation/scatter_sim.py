@@ -46,10 +46,10 @@ def sim_wrapper(arg):
     args, kwargs = arg
     return scatter_sim(*args, **kwargs)
 
-def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, tck, stepsize=0.001, epsilon=0.1, density=0.8562, filename="crossections/diffcx_2p02MeV.csv"):
+def start_sim(e_0: float, n_particles: int, stp: pd.DataFrame, tck, stepsize=0.001, epsilon=0.1, density=0.8562):
     alpha_path = gen_alpha_path(e_0, stp, epsilon=epsilon, stepsize=stepsize)
     arg = (e_0, alpha_path, stp, tck)
-    kwargs = {'stepsize': stepsize, 'epsilon': epsilon, 'density': density, 'filename': filename}
+    kwargs = {'stepsize': stepsize, 'epsilon': epsilon, 'density': density}
     with Pool() as p:
         sim_data = p.map(sim_wrapper, [(arg, kwargs) for i in range(n_particles)])
         p.close()
@@ -96,7 +96,7 @@ def quenched_spectrum_multithread(sim_data: list[AlphaEvent], proton_factor: flo
     return q_spec_flattened
 
 def compute_smearing(e_i, nhit):
-   return gauss(e_i*nhit, nsqrt(e_i*nhit))/nsqrt
+   return gauss(e_i*nhit, nsqrt(e_i*nhit))/nhit
 
 def smeared_spectrum(quenched_spectrum: list[float], nhit: int):
     with Pool() as p:
