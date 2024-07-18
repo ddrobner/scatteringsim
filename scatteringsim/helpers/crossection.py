@@ -3,18 +3,23 @@ import pandas as pd
 
 from random import uniform, random
 from scipy.constants import Avogadro
-from scipy.interpolate import bisplrep, bisplev
+import scipy.interpolate as interp
 
 # the idea here is that we compute the interpolation initially
-def compute_interp_cx(fname : str) -> np.float64:
+def compute_interp_cx(fname : str) -> interp.LinearNDInterpolator:
     cx = pd.read_csv(fname)
-    energy = np.array(cx['energy'])
-    theta = np.array([np.deg2rad(i) for i in cx['theta'].array])
-    diffcx = np.array( cx['energy'] )
-    return bisplrep(energy, theta, diffcx)
+    cx['theta'] = np.deg2rad(cx['theta'])
+    xy = cx[['energy', 'theta']].to_numpy()
+    z = cx['cx'].to_numpy()
+    minx, miny = cx['energy'].to_numpy().min(), cx['theta'].to_numpy().min() 
+    maxx, maxy = cx['energy'].to_numpy().max(), cx['theta'].to_numpy().max()
+    zmin, zmax = cx['cx'].to_numpy().min(), cx['cx'].to_numpy().max()
+    return interp.LinearNDInterpolator(xy, z)
+    
 
 def diff_cx(theta, ke, tck) -> np.float64:
-    return bisplev(ke, theta, tck)
+    #return bisplev(ke, theta, tck)
+    pass
 
 def diffcx_riemann_sum(ke, tck, meshsize=0.1, theta_min=0.1, theta_max=1) -> np.float64:
     x_points = np.arange(theta_min, theta_max, meshsize)
@@ -41,13 +46,13 @@ def scaled_diff_cx(theta, ke, tck) -> np.float64:
     scale = 1/(diff_cx(theta_min, ke, tck))
     return diff_cx(theta,ke, tck)*scale
 
-def scattering_angle(ke, tck) -> np.float64:
+def scattering_angle(ke) -> np.float64:
     theta_min = 0.1
     while True:
         # first we sample from a uniform distribution of valid x-values
         xsample = uniform(theta_min, 1)
         # then find the scaled differential crosssection at the x-sample
-        scx = scaled_diff_cx(xsample, ke, tck)
+        scx = scaled_diff_cx(xsample, ke)
         # and then return the x-sample if a random number is less than that value
         if random() < scx:
             return xsample
