@@ -6,22 +6,27 @@ from scatteringsim.structures import *
 from numpy import pi
 from scipy.constants import Avogadro
 from scipy.interpolate import LinearNDInterpolator
-from random import uniform, random
+import random
+from multiprocessing import Pool
 
 import copy
 import numpy as np
 import pandas as pd
 
 class ScatterSim:
-    def __init__(self, e_0: float, stepsize: float, stp_fname: str, cx_fname: str):
+    def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, proton_factor: float = 0.5):
         self.stp = read_stopping_power(stp_fname)
         self.e_0 = e_0
+        self.num_alphas = num_alphas
+        self.proton_factor = proton_factor
         self.stepsize = stepsize
-        self.alpha_path = gen_alpha_path(self.e_0, self.stepsize)
+        self.nhit = nhit
+
+        # leaving these as constants in here since we are unlikely to change them
         self.density = 0.8562 
         self.mol_wt = 246.43
 
-        self.cx = pd.read_csv(stp_fname)
+        self.cx = pd.read_csv(cx_fname)
         # converting to radians
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
         # scaling the cross section accordingly
@@ -30,27 +35,46 @@ class ScatterSim:
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
         # set up a lookup table for the riemann sums
-        temp_cx = {}
+        temp_es = []
+        temp_cx = []
         for e in self.cx['energy'].unique():
             angles = self.cx[self.cx['energy'] == e]['theta']
             dcx = self.cx[self.cx['energy'] == e]['cx']
             itg = np.trapz(dcx, angles)
-            temp_cx[e] = itg
+            if(itg != 0):
+                temp_es.append(e)
+                temp_cx.append(itg)
+        self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy', 'Total'])
+        del temp_es
+        del temp_cx
         
-        self.total_cx = pd.DataFrame(temp_cx, columns=['Energy', 'Total'])
-
         self.epsilon = 0.01
 
+        self._alpha_sim = None
+        self._quenched_spec = None
+        self._result = None
+
+    @property
+    def alpha_sim(self):
+        return self._alpha_sim
+    
+    @property
+    def quenched_spectrum(self):
+        return self._quenched_spec
+
+    @property
+    def result(self):
+        return self._result
 
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
         if scaled == True:
-            scale = self.cx_interpolator([ke, i] for i in np.linspace(0, np.pi, 10)).max()
+            scale = self.cx_interpolator([(ke, i) for i in np.linspace(0, np.pi, 10)]).max()
             return (1/scale)*cx_pt 
         return cx_pt
 
     def total_crossection(self, ke):
-        return float(np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy()))
+        return np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
 
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
@@ -59,11 +83,11 @@ class ScatterSim:
         theta_max = pi
         while True:
             # first we sample from a uniform distribution of valid x-values
-            xsample = uniform(theta_min, theta_max)
+            xsample = random.uniform(theta_min, theta_max)
             # then find the scaled differential crosssection at the x-sample
             scx = self.differential_cx(xsample, ke, scaled=True)
             # and then return the x-sample if a random number is less than that value
-            if random() < scx:
+            if random.random() < scx:
                 return xsample 
 
 
@@ -79,19 +103,9 @@ class ScatterSim:
         total_a = sample_dim**2
         return eff_a/total_a
 
-    def scatter_sim(self, e_0: float, alpha_path : list) -> AlphaEvent:
-        # TODO add ability to get scattering angles out
-        # we can do the binning/etc later
-
-        # let's set both quenching factors to 1 in here so we can tune them later
+    def scatter_sim(self, alpha_path : list) -> AlphaEvent:
         a_path = copy.deepcopy(alpha_path)
         proton_event_path = []
-        e_i = e_0
-        # The alpha energy path is completely deterministic, so to speed things up
-        # let's pre-bake it. Then, for each step we can do the scattering stuff
-
-        # great, so now we have our pre-baked alpha energy
-        # now we can iterate over the list and do the proton scattering
         scattered = False
         scatter_e = []
         alpha_out = []
@@ -112,3 +126,54 @@ class ScatterSim:
             alpha_out.append(a_path)
 
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
+
+    def quenched_spectrum(sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> None:
+        q_spec = []
+        a_diffs = []
+        n_boundaries = 0
+        i = 0
+        for ap in sim_data.alpha_path:
+            a = 1
+            if(len(sim_data.proton_scatters) > n_boundaries and i != 0):
+                a_diffs.append(abs((sim_data.alpha_path[i-1][-1] + sim_data.proton_scatters[n_boundaries]) - ap[0]))
+                n_boundaries += 1
+            while a < len(ap):
+                a_diffs.append(abs(ap[a] - ap[a-1]))
+                a += 1
+            i += 1
+        q_spec.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
+        return q_spec
+
+    
+    def compute_smearing(e_i, nhit):
+        return random.gauss(e_i*nhit, np.nsqrt(e_i*nhit))/nhit
+
+    """
+    def _wrap_sim(self, arg):
+        return self.scatter_sim(*arg)
+
+    def _wrap_quenching(self, arg):
+        return self.quenched_spectrum(*arg)
+
+    def _wrap_smearing(self, arg):
+        return self.compute_smearing(*arg)
+    """
+
+
+    def start(self):
+        alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
+        with Pool() as p:
+            self._alpha_sim = p.map(self.scatter_sim, [alpha_path for i in range(self.num_alphas)])
+            print(self._alpha_sim[0])
+            quenched_spectrum = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
+            self._quenched_spec = [l
+                              for ls in quenched_spectrum
+                              for l in ls
+            ]
+            smeared_spectrum = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
+            p.close()
+            p.join()
+        self._result = smeared_spectrum
+    
+    def runone_test(self):
+        self.scatter_sim(gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize))
