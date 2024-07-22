@@ -7,7 +7,7 @@ from numpy import pi
 from scipy.constants import Avogadro
 from scipy.interpolate import LinearNDInterpolator
 import random
-from multiprocessing import Pool
+from multiprocessing import Pool,cpu_count
 
 import copy
 import numpy as np
@@ -34,7 +34,7 @@ class ScatterSim:
         # converting to radians
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
         # scaling the cross section accordingly
-        self.cx['cx'] = 180.0/np.pi * self.cx['cx']
+        """
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
@@ -48,9 +48,11 @@ class ScatterSim:
             if(itg != 0):
                 temp_es.append(e)
                 temp_cx.append(itg)
-        self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy', 'Total'])
+        self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
+        'Total'])
         del temp_es
         del temp_cx
+        """
         
         self.epsilon = 0.1
 
@@ -70,15 +72,28 @@ class ScatterSim:
     def result(self):
         return self._result
 
+    """
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
         if scaled == True:
             scale = self.cx_interpolator([(ke, i) for i in np.linspace(self.theta_min, self.theta_max, 10)]).max()
             return (1/scale)*cx_pt 
         return cx_pt
+    """
+
+    def differential_cx(self, theta, ke, scaled=False):
+        theta_s = self.cx['theta'].to_numpy()
+        cx_s = self.cx['cx'].to_numpy()
+        cx_pt = np.interp(theta, theta_s, cx_s)
+        if scaled:
+            scale = np.interp(self.theta_min, theta_s, cx_s)
+            return cx_pt/scale
+        return cx_pt
 
     def total_crossection(self, ke):
-        return np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
+        #return np.interp(ke, self.total_cx['Energy'].to_numpy(),
+        #self.total_cx['Total'].to_numpy())
+        return np.trapz([i*180/np.pi for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
 
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
@@ -154,7 +169,7 @@ class ScatterSim:
 
     def start(self):
         alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
-        with Pool() as p:
+        with Pool(cpu_count()) as p:
             self._alpha_sim = p.map(self.scatter_sim, [alpha_path for i in range(self.num_alphas)])
             quenched_spectrum = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
             self._quenched_spectrum = [l
