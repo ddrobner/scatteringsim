@@ -123,27 +123,27 @@ class ScatterSim:
         return eff_a/total_a
 
     def scatter_sim(self, alpha_path : list) -> AlphaEvent:
-        a_path = copy.deepcopy(alpha_path)
+        #a_path = copy.deepcopy(alpha_path)
         proton_event_path = []
         scattered = False
         scatter_e = []
         alpha_out = []
-        for s in range(len(a_path)):
-            #rsum = diffcx_riemann_sum(a_path[s], tck, theta_max=pi/2)
-            if self.scattering_probability(a_path[s]) > random.random():
+        for s in range(len(alpha_path)):
+            #rsum = diffcx_riemann_sum(alpha_path[s], tck, theta_max=pi/2)
+            if self.scattering_probability(alpha_path[s]) > random.random():
                 scattered = True
-                scatter_angle = self.scattering_angle(a_path[s])
-                transfer_e = energy_transfer(a_path[s], scatter_angle)
+                scatter_angle = self.scattering_angle(alpha_path[s])
+                transfer_e = energy_transfer(alpha_path[s], scatter_angle)
                 print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
-                a_path[s] = transfer_e.e_alpha
-                #a_path = a_path[0:s-1]
-                alpha_out.append(a_path[0:s-1])
+                #alpha_path[s] = transfer_e.e_alpha
+                #alpha_path = a_path[0:s-1]
+                alpha_out.append(alpha_path[0:s-1])
                 proton_event_path.append(transfer_e.e_proton)
-                scatter_e.append(ScatterFrame(scatter_angle, transfer_e.e_proton, scatter_angle))
+                scatter_e.append(ScatterFrame(transfer_e.e_alpha, transfer_e.e_proton, scatter_angle))
                 alpha_out.append(gen_alpha_path(transfer_e.e_alpha, self.stp, stepsize=self.stepsize, epsilon=self.epsilon))
                 break
         if not scattered:
-            alpha_out.append(a_path)
+            alpha_out.append(alpha_path)
 
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
