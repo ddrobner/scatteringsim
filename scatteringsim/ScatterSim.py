@@ -22,6 +22,10 @@ class ScatterSim:
         self.stepsize = stepsize
         self.nhit = nhit
 
+        #picking a min theta so we neglect the small amounts of transferred energy
+        self.theta_min = np.pi/4
+        self.theta_max = 2*np.pi
+
         # leaving these as constants in here since we are unlikely to change them
         self.density = 0.8562 
         self.mol_wt = 246.43
@@ -48,7 +52,7 @@ class ScatterSim:
         del temp_es
         del temp_cx
         
-        self.epsilon = 0.01
+        self.epsilon = 0.1
 
         self._alpha_sim = None
         self._quenched_spec = None
@@ -69,7 +73,7 @@ class ScatterSim:
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
         if scaled == True:
-            scale = self.cx_interpolator([(ke, i) for i in np.linspace(0, np.pi, 10)]).max()
+            scale = self.cx_interpolator([(ke, i) for i in np.linspace(self.theta_min, self.theta_max, 10)]).max()
             return (1/scale)*cx_pt 
         return cx_pt
 
@@ -79,8 +83,8 @@ class ScatterSim:
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
     def scattering_angle(self, ke) -> np.float64:
-        theta_min = 0.1
-        theta_max = pi
+        theta_min = self.theta_min 
+        theta_max = self.theta_max 
         while True:
             # first we sample from a uniform distribution of valid x-values
             xsample = random.uniform(theta_min, theta_max)
