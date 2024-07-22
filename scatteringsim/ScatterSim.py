@@ -131,7 +131,7 @@ class ScatterSim:
 
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
-    def quenched_spectrum(sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> None:
+    def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> None:
         q_spec = []
         a_diffs = []
         n_boundaries = 0
@@ -149,32 +149,19 @@ class ScatterSim:
         return q_spec
 
     
-    def compute_smearing(e_i, nhit):
-        return random.gauss(e_i*nhit, np.nsqrt(e_i*nhit))/nhit
-
-    """
-    def _wrap_sim(self, arg):
-        return self.scatter_sim(*arg)
-
-    def _wrap_quenching(self, arg):
-        return self.quenched_spectrum(*arg)
-
-    def _wrap_smearing(self, arg):
-        return self.compute_smearing(*arg)
-    """
-
+    def compute_smearing(self, e_i, nhit):
+        return random.gauss(e_i*nhit, np.sqrt(e_i*nhit))/nhit
 
     def start(self):
         alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
         with Pool() as p:
             self._alpha_sim = p.map(self.scatter_sim, [alpha_path for i in range(self.num_alphas)])
-            print(self._alpha_sim[0])
             quenched_spectrum = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
-            self._quenched_spec = [l
+            self._quenched_spectrum = [l
                               for ls in quenched_spectrum
                               for l in ls
             ]
-            smeared_spectrum = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
+            smeared_spectrum = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spectrum])
             p.close()
             p.join()
         self._result = smeared_spectrum
