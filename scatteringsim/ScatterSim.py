@@ -134,6 +134,7 @@ class ScatterSim:
                 scattered = True
                 scatter_angle = self.scattering_angle(a_path[s])
                 transfer_e = energy_transfer(a_path[s], scatter_angle)
+                print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
                 a_path[s] = transfer_e.e_alpha
                 #a_path = a_path[0:s-1]
                 alpha_out.append(a_path[0:s-1])
