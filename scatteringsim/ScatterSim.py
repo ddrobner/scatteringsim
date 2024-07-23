@@ -7,7 +7,10 @@ from numpy import pi
 from scipy.constants import Avogadro
 from scipy.interpolate import LinearNDInterpolator
 import random
-from multiprocessing import Pool,cpu_count
+from multiprocessing import Pool, cpu_count
+from multiprocessing.shared_memory import SharedMemory
+
+from typing import Type
 
 import copy
 import numpy as np
@@ -147,7 +150,7 @@ class ScatterSim:
 
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
-    def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> None:
+    def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> list[np.float64]:
         q_spec = []
         a_diffs = []
         n_boundaries = 0
@@ -164,6 +167,23 @@ class ScatterSim:
         q_spec.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
         return q_spec
 
+    def particle_scint_sim(self, scatter_args: tuple, scatter_kwargs: dict, quench_args: tuple, quench_kwargs: dict) -> tuple[AlphaEvent, list[np.float64]]:
+        """A function to run both particle and quenching sim in one shot
+
+        Args:
+            scatter_args (tuple): tuple of arguments to be passed to ScatterSim.scatter_sim 
+            scatter_kwargs (dict): dict of kwargs for ScatterSim.scatter_sim 
+            quench_args (tuple): tuple of args for ScatterSim.quenched_spectrum
+            quench_kwargs (dict): dict of kwargs for ScatterSim.quenched_spectrum 
+
+        Returns:
+            tuple[AlphaEvent, list[np.float64]]: tuple of the list of alpha
+            deposits, as well as the quenched result 
+        """
+        a_part = self.scatter_sim(*scatter_args, **scatter_kwargs)
+        q_part = self.quenched_spectrum(a_part, *quench_args, **quench_kwargs)
+        q_part = [l for ls in q_part for l in ls]
+        return (a_part, q_part)
     
     def compute_smearing(self, e_i, nhit):
         return random.gauss(e_i*nhit, np.sqrt(e_i*nhit))/nhit
@@ -171,16 +191,11 @@ class ScatterSim:
     def start(self):
         alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
         with Pool(cpu_count()) as p:
-            self._alpha_sim = p.map(self.scatter_sim, [alpha_path for i in range(self.num_alphas)])
-            quenched_spectrum = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
-            self._quenched_spectrum = [l
-                              for ls in quenched_spectrum
-                              for l in ls
-            ]
+            # store the output of both in a temporary list of tuples 
+            tmp_res = p.starmap(self.particle_scint_sim, [((alpha_path,), dict(), (self.proton_factor,), {"alpha_factor": 0.1}) for i in range(self.num_alphas)])
+            # and unpack into two lists
+            self._alpha_sim, self._quenched_spec = zip(*tmp_res)
             smeared_spectrum = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spectrum])
             p.close()
             p.join()
         self._result = smeared_spectrum
-    
-    def runone_test(self):
-        self.scatter_sim(gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize))
