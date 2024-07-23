@@ -161,15 +161,19 @@ class ScatterSim:
                 transfer_e = energy_transfer(a_path[s], scatter_angle)
                 print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
                 # this should only store a reference to the alpha path and not copy
-                alpha_out.append(a_path[0:s-1])
+                alpha_out.append(a_path[0:s])
                 proton_event_path.append(transfer_e.e_proton)
                 scatter_e.append(ScatterFrame(transfer_e.e_alpha, transfer_e.e_proton, scatter_angle))
                 alpha_out.append(gen_alpha_path(transfer_e.e_alpha, self.stp, stepsize=self.stepsize, epsilon=self.epsilon))
                 break
+        #if len(alpha_out) == 0:
+        #    # this happens if we scatter on the first step
+        #    alpha_out = [alpha_path]
+        for a in range(len(alpha_out)):
+            if len(alpha_out[a]) == 0:
+                alpha_out[a] = [np.float64(0)]
+                
 
-        if len(alpha_out) == 0:
-            # this happens if we scatter on the first step
-            alpha_out = [alpha_path]
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
     def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> list[np.float64]:
