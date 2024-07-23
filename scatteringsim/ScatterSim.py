@@ -7,15 +7,23 @@ from scipy.constants import Avogadro
 from scipy.interpolate import LinearNDInterpolator
 import random
 from multiprocessing import Pool, cpu_count
-from time import sleep
+from multiprocessing import RawArray as mparray
 
 from tqdm import tqdm
 
 import numpy as np
 import pandas as pd
 
+import ctypes
+
+alpha_path = None
+
 class ScatterSim:
     def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, proton_factor: float = 0.5):
+        # declaring this as a global to speed up multprocessing 
+        global alpha_path
+        
+        
         self.stp = read_stopping_power(stp_fname)
         self.e_0 = e_0
         self.num_alphas = num_alphas
@@ -35,7 +43,9 @@ class ScatterSim:
 
         # declaring this as a class variable for now since I don't write to it
         # so it doesn't get copied on pickling
-        self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
+        apath_base = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
+        # can have no lock here since the array is read only
+        alpha_path = mparray(ctypes.c_double, apath_base)
 
         self.cx = pd.read_csv(cx_fname)
         # converting to radians
@@ -130,29 +140,32 @@ class ScatterSim:
         return eff_a/total_a
 
     def scatter_sim(self) -> AlphaEvent:
+        global alpha_path
+
+        a_path = np.frombuffer(alpha_path, dtype=np.float64)
+
         proton_event_path = []
         scattered = False
         scatter_e = []
         alpha_out = []
-        for s in range(len(self.alpha_path)):
-            if self.scattering_probability(self.alpha_path[s]) > random.random():
+        for s in range(len(a_path)):
+            if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
                 scattered = True
-                scatter_angle = self.scattering_angle(self.alpha_path[s])
-                transfer_e = energy_transfer(self.alpha_path[s], scatter_angle)
+                scatter_angle = self.scattering_angle(a_path[s])
+                transfer_e = energy_transfer(a_path[s], scatter_angle)
                 print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
                 # this should only store a reference to the alpha path and not copy
-                alpha_out.append(self.alpha_path[0:s-1])
+                alpha_out.append(a_path[0:s-1])
                 proton_event_path.append(transfer_e.e_proton)
                 scatter_e.append(ScatterFrame(transfer_e.e_alpha, transfer_e.e_proton, scatter_angle))
                 alpha_out.append(gen_alpha_path(transfer_e.e_alpha, self.stp, stepsize=self.stepsize, epsilon=self.epsilon))
                 break
         if not scattered:
-            alpha_out.append(self.alpha_path)
+            alpha_out.append(a_path)
         elif len(alpha_out) == 0:
             # failsafe for if the alpha path is somehow empty
             print("Warning: Particle with scattering and empty alpha data")
-            alpha_out.append(self.alpha_path)
-
+            alpha_out.append(a_path)
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
     def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> list[np.float64]:
@@ -198,4 +211,6 @@ class ScatterSim:
         # now we do the det smearing
         with Pool(cpu_count()) as p:
             self._result = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
-        
+
+    def run_one_profiling(self):
+        self.scatter_simi() 
