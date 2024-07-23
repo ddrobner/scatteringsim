@@ -1,6 +1,4 @@
-from scatteringsim.helpers.stoppingpower import read_stopping_power
-from scatteringsim.helpers.alphapath import gen_alpha_path
-from scatteringsim.helpers.energytransfer import energy_transfer
+from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer
 from scatteringsim.structures import *
 
 from scipy.constants import Avogadro
