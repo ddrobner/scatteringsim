@@ -33,7 +33,7 @@ class ScatterSim:
 
         #picking a min theta so we neglect the small amounts of transferred energy
         self.theta_min = np.pi/4
-        self.theta_max = 2*np.pi
+        self.theta_max = np.pi
 
         # leaving these as constants in here since we are unlikely to change them
         self.density = 0.8562 
@@ -72,7 +72,7 @@ class ScatterSim:
         del temp_cx
         """
 
-        self.scattering_probability = 6.576617367299405e-08
+        self.scattering_probability = (180/np.pi)*6.576617367299405e-08
         
 
         self._alpha_sim = None
@@ -117,11 +117,9 @@ class ScatterSim:
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
     def scattering_angle(self, ke) -> np.float64:
-        theta_min = self.theta_min 
-        theta_max = self.theta_max 
         while True:
             # first we sample from a uniform distribution of valid x-values
-            xsample = random.uniform(theta_min, theta_max)
+            xsample = random.uniform(self.theta_min, self.theta_max)
             # then find the scaled differential crosssection at the x-sample
             scx = self.differential_cx(xsample, ke, scaled=True)
             # and then return the x-sample if a random number is less than that value
