@@ -203,13 +203,13 @@ class ScatterSim:
         return random.gauss(e_i*nhit, np.sqrt(e_i*nhit))/nhit
 
     def start(self):
-        print("Starting Simulation")
-
+        print("Starting Simulation.....")
         # open a pool as well as create a progress bar
         with Pool(cpu_count()) as p, tqdm(total=self.num_alphas) as pbar:
             # store the apply_async results
             r = [p.apply_async(self.particle_scint_sim, ((tuple(), dict(), (self.proton_factor,), {"alpha_factor":0.1}),), callback=lambda _: pbar.update(1)) for i in range(self.num_alphas)]
             # and if we have all of those done unpack them into a list
+            print("Simulation Started!")
             if(len(r) == self.num_alphas):
                 tmp_res = [i.get() for i in r]
             p.close()
