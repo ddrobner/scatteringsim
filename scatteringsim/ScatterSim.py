@@ -23,7 +23,7 @@ class ScatterSim:
         # declaring this as a global to speed up multprocessing 
         global alpha_path
         
-        
+        # declaring some constants 
         self.stp = read_stopping_power(stp_fname)
         self.e_0 = e_0
         self.num_alphas = num_alphas
@@ -39,6 +39,10 @@ class ScatterSim:
         self.density = 0.8562 
         self.mol_wt = 246.43
 
+        # this is the lower bound any time anything goes to zero (ie. alpha
+        # energy)
+        # really speeds things up and also when it has that little energy the
+        # scatters are going to be negligible
         self.epsilon = 0.1
 
         # declaring this as a class variable for now since I don't write to it
@@ -47,6 +51,7 @@ class ScatterSim:
         # can have no lock here since the array is read only
         alpha_path = mparray(ctypes.c_double, apath_base)
 
+        # now we handle setting up the cross section
         self.cx = pd.read_csv(cx_fname)
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
@@ -72,23 +77,43 @@ class ScatterSim:
         del temp_cx
         """
 
+        # this is hardcoded for the fixed energy cx sim
+        # because the function call along with the manual computation was VERY
+        # expensive for each step
+        # and will be reserved for the 2D cx only
         self.scattering_probability = (180/np.pi)*6.576617367299405e-08
         
-
+        # and set up class variable to store the outputs
         self._alpha_sim = None
         self._quenched_spec = None
         self._result = None
 
     @property
-    def alpha_sim(self):
+    def alpha_sim(self) -> list[AlphaEvent]:
+        """Particle Simulation Results
+
+        Returns:
+            list[AlphaEvent]: A list of AlphaEvent objects containing the
+            results for each particle 
+        """
         return self._alpha_sim
     
     @property
-    def quenched_spectrum(self):
+    def quenched_spectrum(self) -> list[np.float64]:
+        """Simulated quenched spectrum
+
+        Returns:
+            list[np.float64]: A list of the quenched energy values for each particle 
+        """
         return self._quenched_spec
 
     @property
-    def result(self):
+    def result(self) -> list[np.float64]:
+        """Simulation results with detector simulation
+        
+        Returns:
+            list[np.float64]: A list of the simulated energy values (one per particle)
+        """
         return self._result
 
     """
@@ -100,7 +125,18 @@ class ScatterSim:
         return cx_pt
     """
 
-    def differential_cx(self, theta, ke, scaled=False):
+    def differential_cx(self, theta : np.float64, ke : np.float64, scaled=False) -> np.float64:
+        """Computed the differential cross section at a point
+
+        Args:
+            theta (np.float64): The angle to compute the cross section at 
+            ke (np.float64): The kinetic energy for the cross section 
+            scaled (bool, optional): Normalize so that the maximum value
+            returned is 1. Useful for anything involving probabilities. Defaults to False.
+
+        Returns:
+            np.float64: _description_
+        """
         theta_s = self.cx['theta'].to_numpy()
         cx_s = self.cx['cx'].to_numpy()
         cx_pt = np.interp(theta, theta_s, cx_s)
@@ -109,14 +145,30 @@ class ScatterSim:
             return cx_pt/scale
         return cx_pt
 
-    def total_crossection(self, ke):
+    def total_crossection(self, ke : np.float64) -> np.float64:
+        """Computes the total cross section with a trapezoidal riemann sum
+
+        Args:
+            ke (np.float64): The kinetic energy for the cross section 
+
+        Returns:
+            np.float64: The total cross section 
+        """
         #return np.interp(ke, self.total_cx['Energy'].to_numpy(),
         #self.total_cx['Total'].to_numpy())
         return np.trapz([i*180/np.pi for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
 
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
-    def scattering_angle(self, ke) -> np.float64:
+    def scattering_angle(self, ke : np.float64) -> np.float64:
+        """Samples from the differential cross section to get a scattering angle
+        
+        Args:
+            ke (np.float64): The kinetic energy for the alpha
+
+        Returns:
+            np.float64: The sampled scattering angle
+        """
         while True:
             # first we sample from a uniform distribution of valid x-values
             xsample = random.uniform(self.theta_min, self.theta_max)
@@ -144,6 +196,11 @@ class ScatterSim:
     """
 
     def scatter_sim(self) -> AlphaEvent:
+        """Function to simulate a single alpha particle
+
+        Returns:
+            AlphaEvent: The simulation data for the simulated particle 
+        """
         global alpha_path
         a_path = np.frombuffer(alpha_path, dtype=np.float64)
         alpha_out = [a_path]
@@ -177,6 +234,19 @@ class ScatterSim:
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
     def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> list[np.float64]:
+        """Computes the quenched value for a result from scatter_sim
+
+        Args:
+            sim_data (AlphaEvent): The output of a particle simulation 
+            proton_factor (float): The proton quenching factor 
+            alpha_factor (float, optional): The alpha quenching factor. Defaults to 0.1.
+
+        Returns:
+            list[np.float64]: The quenched energy for the input particle
+        """
+
+        # TODO update everything so that this doesn't return a list and instead
+        # the single value
         q_spec = []
         a_diffs = []
         n_boundaries = 0
@@ -194,15 +264,35 @@ class ScatterSim:
         return q_spec
 
     def particle_scint_sim(self, args) -> tuple[AlphaEvent, list[np.float64]]:
+        """Simulation and quenching for a single alpha particle
+
+        Args:
+            args (iterable): A size-4 iterable containing args and kwargs for
+            each of scatter_sim and quenched_spectrum respectively
+
+        Returns:
+            tuple[AlphaEvent, list[np.float64]]: _description_
+        """
         scatter_args, scatter_kwargs, quench_args, quench_kwargs = args
         a_part = self.scatter_sim(*scatter_args, **scatter_kwargs)
         q_part = self.quenched_spectrum(a_part, *quench_args, **quench_kwargs)
         return (a_part, q_part[0])
     
-    def compute_smearing(self, e_i, nhit):
+    def compute_smearing(self, e_i : np.float64, nhit : int) -> np.float64:
+        """Detector smearing of quenched energy values
+
+        Args:
+            e_i (np.float64): Quenched energy 
+            nhit (int): Detector smearing factor in nhits/mev 
+
+        Returns:
+            np.float64: Detector simulated energy spectrum
+        """
         return random.gauss(e_i*nhit, np.sqrt(e_i*nhit))/nhit
 
     def start(self):
+        """Starts the simulation using the parameters given in the constructor
+        """
         print("Starting Simulation.....")
         # open a pool as well as create a progress bar
         with Pool(cpu_count()) as p, tqdm(total=self.num_alphas) as pbar:
@@ -219,6 +309,3 @@ class ScatterSim:
         # now we do the det smearing
         with Pool(cpu_count()) as p:
             self._result = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
-
-    def run_one_profiling(self):
-        self.scatter_sim() 
