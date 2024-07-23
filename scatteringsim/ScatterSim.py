@@ -148,7 +148,7 @@ class ScatterSim:
     def scatter_sim(self) -> AlphaEvent:
         global alpha_path
         a_path = np.frombuffer(alpha_path, dtype=np.float64)
-        alpha_out = a_path
+        alpha_out = [a_path]
         proton_event_path, scatter_e = [], []
         scattered = False
         for s in range(len(a_path)):
