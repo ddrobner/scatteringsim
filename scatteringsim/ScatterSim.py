@@ -168,6 +168,10 @@ class ScatterSim:
                 scatter_e.append(ScatterFrame(transfer_e.e_alpha, transfer_e.e_proton, scatter_angle))
                 alpha_out.append(gen_alpha_path(transfer_e.e_alpha, self.stp, stepsize=self.stepsize, epsilon=self.epsilon))
                 break
+
+        if len(alpha_out) == 0:
+            # this happens if we scatter on the first step
+            alpha_out = [alpha_path]
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
     def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> list[np.float64]:
