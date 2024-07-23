@@ -3,16 +3,14 @@ from scatteringsim.helpers.alphapath import gen_alpha_path
 from scatteringsim.helpers.energytransfer import energy_transfer
 from scatteringsim.structures import *
 
-from numpy import pi
 from scipy.constants import Avogadro
 from scipy.interpolate import LinearNDInterpolator
 import random
 from multiprocessing import Pool, cpu_count
-from multiprocessing.shared_memory import SharedMemory
+from time import sleep
 
-from typing import Type
+from tqdm import tqdm
 
-import copy
 import numpy as np
 import pandas as pd
 
@@ -33,10 +31,17 @@ class ScatterSim:
         self.density = 0.8562 
         self.mol_wt = 246.43
 
+        self.epsilon = 0.1
+
+        # declaring this as a class variable for now since I don't write to it
+        # so it doesn't get copied on pickling
+        self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
+
         self.cx = pd.read_csv(cx_fname)
         # converting to radians
+        # NOTE this means we need to scale the cx when integrating by 
+        # 180/pi due to the transformation
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
-        # scaling the cross section accordingly
         """
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
@@ -57,7 +62,6 @@ class ScatterSim:
         del temp_cx
         """
         
-        self.epsilon = 0.1
 
         self._alpha_sim = None
         self._quenched_spec = None
@@ -125,28 +129,29 @@ class ScatterSim:
         total_a = sample_dim**2
         return eff_a/total_a
 
-    def scatter_sim(self, alpha_path : list) -> AlphaEvent:
-        #a_path = copy.deepcopy(alpha_path)
+    def scatter_sim(self) -> AlphaEvent:
         proton_event_path = []
         scattered = False
         scatter_e = []
         alpha_out = []
-        for s in range(len(alpha_path)):
-            #rsum = diffcx_riemann_sum(alpha_path[s], tck, theta_max=pi/2)
-            if self.scattering_probability(alpha_path[s]) > random.random():
+        for s in range(len(self.alpha_path)):
+            if self.scattering_probability(self.alpha_path[s]) > random.random():
                 scattered = True
-                scatter_angle = self.scattering_angle(alpha_path[s])
-                transfer_e = energy_transfer(alpha_path[s], scatter_angle)
+                scatter_angle = self.scattering_angle(self.alpha_path[s])
+                transfer_e = energy_transfer(self.alpha_path[s], scatter_angle)
                 print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
-                #alpha_path[s] = transfer_e.e_alpha
-                #alpha_path = a_path[0:s-1]
-                alpha_out.append(alpha_path[0:s-1])
+                # this should only store a reference to the alpha path and not copy
+                alpha_out.append(self.alpha_path[0:s-1])
                 proton_event_path.append(transfer_e.e_proton)
                 scatter_e.append(ScatterFrame(transfer_e.e_alpha, transfer_e.e_proton, scatter_angle))
                 alpha_out.append(gen_alpha_path(transfer_e.e_alpha, self.stp, stepsize=self.stepsize, epsilon=self.epsilon))
                 break
         if not scattered:
-            alpha_out.append(alpha_path)
+            alpha_out.append(self.alpha_path)
+        elif len(alpha_out) == 0:
+            # failsafe for if the alpha path is somehow empty
+            print("Warning: Particle with scattering and empty alpha data")
+            alpha_out.append(self.alpha_path)
 
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
@@ -167,35 +172,30 @@ class ScatterSim:
         q_spec.append( sum( [alpha_factor*j for j in a_diffs] + [proton_factor*k for k in sim_data.proton_scatters] ) )
         return q_spec
 
-    def particle_scint_sim(self, scatter_args: tuple, scatter_kwargs: dict, quench_args: tuple, quench_kwargs: dict) -> tuple[AlphaEvent, list[np.float64]]:
-        """A function to run both particle and quenching sim in one shot
-
-        Args:
-            scatter_args (tuple): tuple of arguments to be passed to ScatterSim.scatter_sim 
-            scatter_kwargs (dict): dict of kwargs for ScatterSim.scatter_sim 
-            quench_args (tuple): tuple of args for ScatterSim.quenched_spectrum
-            quench_kwargs (dict): dict of kwargs for ScatterSim.quenched_spectrum 
-
-        Returns:
-            tuple[AlphaEvent, list[np.float64]]: tuple of the list of alpha
-            deposits, as well as the quenched result 
-        """
+    def particle_scint_sim(self, args) -> tuple[AlphaEvent, list[np.float64]]:
+        scatter_args, scatter_kwargs, quench_args, quench_kwargs = args
         a_part = self.scatter_sim(*scatter_args, **scatter_kwargs)
         q_part = self.quenched_spectrum(a_part, *quench_args, **quench_kwargs)
-        q_part = [l for ls in q_part for l in ls]
-        return (a_part, q_part)
+        return (a_part, q_part[0])
     
     def compute_smearing(self, e_i, nhit):
         return random.gauss(e_i*nhit, np.sqrt(e_i*nhit))/nhit
 
     def start(self):
-        alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
-        with Pool(cpu_count()) as p:
-            # store the output of both in a temporary list of tuples 
-            tmp_res = p.starmap(self.particle_scint_sim, [((alpha_path,), dict(), (self.proton_factor,), {"alpha_factor": 0.1}) for i in range(self.num_alphas)])
-            # and unpack into two lists
-            self._alpha_sim, self._quenched_spec = zip(*tmp_res)
-            smeared_spectrum = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spectrum])
+        print("Starting Simulation")
+
+        # open a pool as well as create a progress bar
+        with Pool(cpu_count()) as p, tqdm(total=self.num_alphas) as pbar:
+            # store the apply_async results
+            r = [p.apply_async(self.particle_scint_sim, ((tuple(), dict(), (self.proton_factor,), {"alpha_factor":0.1}),), callback=lambda _: pbar.update(1)) for i in range(self.num_alphas)]
+            # and if we have all of those done unpack them into a list
+            if(len(r) == self.num_alphas):
+                tmp_res = [i.get() for i in r]
             p.close()
-            p.join()
-        self._result = smeared_spectrum
+            pbar.close()
+            
+        self._alpha_sim, self._quenched_spec = zip(*tmp_res)
+        # now we do the det smearing
+        with Pool(cpu_count()) as p:
+            self._result = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
+        
