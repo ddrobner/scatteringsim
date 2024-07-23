@@ -71,6 +71,8 @@ class ScatterSim:
         del temp_es
         del temp_cx
         """
+
+        self.scattering_probability = 6.576617367299405e-08
         
 
         self._alpha_sim = None
@@ -127,6 +129,7 @@ class ScatterSim:
                 return xsample 
 
 
+    """
     def scattering_probability(self, ke) -> np.float64:
         sample_dim = 1
         sigma = self.total_crossection(ke)*1E-24
@@ -137,20 +140,25 @@ class ScatterSim:
 
         eff_a = sigma*n
         total_a = sample_dim**2
+        print(eff_a/total_a)
         return eff_a/total_a
+        # returning as a number for now, to speed up
+    """
 
     def scatter_sim(self) -> AlphaEvent:
         global alpha_path
-
         a_path = np.frombuffer(alpha_path, dtype=np.float64)
-
-        proton_event_path = []
+        alpha_out = a_path
+        proton_event_path, scatter_e = [], []
         scattered = False
-        scatter_e = []
-        alpha_out = []
         for s in range(len(a_path)):
-            if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
+            #if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
+            if self.scattering_probability > np.random.uniform(low=0., high=1.):
+                if not scattered:
+                    # don't create these until there is a scattering 
+                    alpha_out = [] 
                 scattered = True
+                # doing this here since this runs far more rarely
                 scatter_angle = self.scattering_angle(a_path[s])
                 transfer_e = energy_transfer(a_path[s], scatter_angle)
                 print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
@@ -160,12 +168,6 @@ class ScatterSim:
                 scatter_e.append(ScatterFrame(transfer_e.e_alpha, transfer_e.e_proton, scatter_angle))
                 alpha_out.append(gen_alpha_path(transfer_e.e_alpha, self.stp, stepsize=self.stepsize, epsilon=self.epsilon))
                 break
-        if not scattered:
-            alpha_out.append(a_path)
-        elif len(alpha_out) == 0:
-            # failsafe for if the alpha path is somehow empty
-            print("Warning: Particle with scattering and empty alpha data")
-            alpha_out.append(a_path)
         return AlphaEvent(alpha_out, proton_event_path, scatter_e)
 
     def quenched_spectrum(self, sim_data: AlphaEvent,  proton_factor: float, alpha_factor: float=0.1) -> list[np.float64]:
@@ -213,4 +215,4 @@ class ScatterSim:
             self._result = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
 
     def run_one_profiling(self):
-        self.scatter_simi() 
+        self.scatter_sim() 
