@@ -87,6 +87,14 @@ class ScatterSim:
         self._result = None
 
     @property
+    def protonfactor(self):
+        return self.proton_factor
+
+    @protonfactor.setter
+    def quenching_factor(self, factor):
+        self.quenchin
+
+    @property
     def alpha_sim(self) -> list[AlphaEvent]:
         """Particle Simulation Results
 
@@ -154,7 +162,7 @@ class ScatterSim:
         """
         #return np.interp(ke, self.total_cx['Energy'].to_numpy(),
         #self.total_cx['Total'].to_numpy())
-        return np.trapz([i*180/np.pi for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
+        return np.trapz([i*(180/np.pi) for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
 
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
@@ -177,7 +185,6 @@ class ScatterSim:
                 return xsample 
 
 
-    """
     def scattering_probability(self, ke) -> np.float64:
         sample_dim = 1
         sigma = self.total_crossection(ke)*1E-24
@@ -190,8 +197,6 @@ class ScatterSim:
         total_a = sample_dim**2
         print(eff_a/total_a)
         return eff_a/total_a
-        # returning as a number for now, to speed up
-    """
 
     def scatter_sim(self) -> AlphaEvent:
         """Function to simulate a single alpha particle
@@ -206,7 +211,7 @@ class ScatterSim:
         scattered = False
         for s in range(len(a_path)):
             #if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
-            if self.scattering_probability > np.random.uniform(low=0., high=1.):
+            if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
                 if not scattered:
                     # don't create these until there is a scattering 
                     alpha_out = [] 
