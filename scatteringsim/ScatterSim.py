@@ -79,7 +79,7 @@ class ScatterSim:
         # because the function call along with the manual computation was VERY
         # expensive for each step
         # and will be reserved for the 2D cx only
-        self.scattering_probability = (180/np.pi)*6.576617367299405e-08
+        self.scattering_probability = 2*np.pi*6.576617367299405e-08
         
         # and set up class variable to store the outputs
         self._alpha_sim = None
