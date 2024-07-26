@@ -55,7 +55,8 @@ class ScatterSim:
         # NOTE this means we need to scale the cx when integrating by 
         # 180/pi due to the transformation
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
-        """
+        self.cx = self.cx[self.cx['theta'] >= self.theta_min]
+        self.cx.reset_index(inplace=True, drop=True)
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
@@ -73,13 +74,12 @@ class ScatterSim:
         'Total'])
         del temp_es
         del temp_cx
-        """
 
         # this is hardcoded for the fixed energy cx sim
         # because the function call along with the manual computation was VERY
         # expensive for each step
         # and will be reserved for the 2D cx only
-        self.scattering_probability = 2*np.pi*6.576617367299405e-08
+        #self.scattering_probability = 2*np.pi*6.576617367299405e-08
         
         # and set up class variable to store the outputs
         self._alpha_sim = None
@@ -122,14 +122,12 @@ class ScatterSim:
         """
         return self._result
 
-    """
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
         if scaled == True:
             scale = self.cx_interpolator([(ke, i) for i in np.linspace(self.theta_min, self.theta_max, 10)]).max()
             return (1/scale)*cx_pt 
         return cx_pt
-    """
 
     def differential_cx(self, theta : np.float64, ke : np.float64, scaled=False) -> np.float64:
         """Computed the differential cross section at a point
@@ -160,9 +158,8 @@ class ScatterSim:
         Returns:
             np.float64: The total cross section 
         """
-        #return np.interp(ke, self.total_cx['Energy'].to_numpy(),
-        #self.total_cx['Total'].to_numpy())
-        return np.trapz([i*(180/np.pi) for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
+        return np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
+        #return np.trapz([i*(180/np.pi) for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
 
     # moving this to a class method to avoid all of this passing variables
     # around nonsense
