@@ -92,7 +92,7 @@ class ScatterSim:
 
     @protonfactor.setter
     def quenching_factor(self, factor):
-        self.quenchin
+        self.proton_factor = factor
 
     @property
     def alpha_sim(self) -> list[AlphaEvent]:
