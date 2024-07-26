@@ -6,6 +6,7 @@ from scipy.interpolate import LinearNDInterpolator
 import random
 from multiprocessing import Pool, cpu_count
 from multiprocessing import RawArray as mparray
+from decimal import Decimal
 
 from tqdm import tqdm
 
@@ -85,6 +86,24 @@ class ScatterSim:
         self._alpha_sim = None
         self._quenched_spec = None
         self._result = None
+
+    @property
+    def numalphas(self):
+        return self.num_alphas
+
+    @property
+    def step_size(self):
+        return self.stepsize
+
+    @property
+    def step_size_latex(self):
+        s = f"{Decimal(str(self.stepsize)):.2E}"
+        n = int(float(s.split("E")[0]))
+        mag = s.split("E")[1]
+        
+        #return f"${n}^{{{mag}}}$"
+        return f"$10^{{{mag}}}$"
+        
 
     @property
     def protonfactor(self):
@@ -185,6 +204,7 @@ class ScatterSim:
                 return xsample 
 
 
+    """
     def scattering_probability(self, ke) -> np.float64:
         sample_dim = 1
         sigma = self.total_crossection(ke)*1E-24
@@ -197,6 +217,7 @@ class ScatterSim:
         total_a = sample_dim**2
         print(eff_a/total_a)
         return eff_a/total_a
+    """
 
     def scatter_sim(self) -> AlphaEvent:
         """Function to simulate a single alpha particle
@@ -211,7 +232,7 @@ class ScatterSim:
         scattered = False
         for s in range(len(a_path)):
             #if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
-            if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
+            if self.scattering_probability > np.random.uniform(low=0., high=1.):
                 if not scattered:
                     # don't create these until there is a scattering 
                     alpha_out = [] 
@@ -312,11 +333,24 @@ class ScatterSim:
         # now we do the det smearing
         self._result = [self.compute_smearing(i, self.nhit) for i in self._quenched_spec] 
 
+    def particle_sim(self):
+        """Performs only the particle simulation
+        """
+        with Pool(cpu_count()) as p, tqdm(total=self.num_alphas) as pbar:
+            r = [p.apply_async(self.scatter_sim, callback=lambda _: pbar.update(1)) for i in range(self.num_alphas)]
+            print("Simulation Started!")
+            if(len(r) == self.num_alphas):
+                tmp_res = [i.get() for i in r]
+            p.close()
+            pbar.close()
+        self._alpha_sim = tmp_res
+
     def recompute_spectrum(self):
         """Recomputes the quenched spectrum and detector smearing, using the
         same particle simulation
         """
         with Pool(cpu_count()) as p:
             self._quenched_spec = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
+        self._quenched_spec = [l for ls in self._quenched_spec for l in ls]
             
         self._result = [self.compute_smearing(i, self.nhit) for i in self._quenched_spec] 
