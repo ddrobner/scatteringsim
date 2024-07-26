@@ -307,5 +307,13 @@ class ScatterSim:
             
         self._alpha_sim, self._quenched_spec = zip(*tmp_res)
         # now we do the det smearing
+        self._result = [self.compute_smearing(i, self.nhit) for i in self._quenched_spec] 
+
+    def recompute_spectrum(self):
+        """Recomputes the quenched spectrum and detector smearing, using the
+        same particle simulation
+        """
         with Pool(cpu_count()) as p:
-            self._result = p.starmap(self.compute_smearing, [(i, self.nhit) for i in self._quenched_spec])
+            self._quenched_spec = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
+            
+        self._result = [self.compute_smearing(i, self.nhit) for i in self._quenched_spec] 
