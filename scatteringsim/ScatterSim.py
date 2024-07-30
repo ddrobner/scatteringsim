@@ -349,8 +349,13 @@ class ScatterSim:
         """Recomputes the quenched spectrum and detector smearing, using the
         same particle simulation
         """
+        print("Computing Spectrum....")
         with Pool(cpu_count()) as p:
             self._quenched_spec = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
+            p.close()
         self._quenched_spec = [l for ls in self._quenched_spec for l in ls]
+        print("Done computing spectrum")
             
+        print("Performing detector simulation")
         self._result = [self.compute_smearing(i, self.nhit) for i in self._quenched_spec] 
+        print("Done!")
