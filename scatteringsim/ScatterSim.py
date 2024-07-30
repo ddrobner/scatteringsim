@@ -350,6 +350,9 @@ class ScatterSim:
         same particle simulation
         """
         print("Computing Spectrum....")
+        # clear outputs
+        del self._quenched_spec
+        del self._result
         with Pool(cpu_count()) as p:
             self._quenched_spec = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
             p.close()
