@@ -340,10 +340,13 @@ class ScatterSim:
             r = [p.apply_async(self.scatter_sim, callback=lambda _: pbar.update(1)) for i in range(self.num_alphas)]
             print("Simulation Started!")
             if(len(r) == self.num_alphas):
-                tmp_res = [i.get() for i in r]
+                tmp_r = [i.get() for i in r]
             p.close()
             pbar.close()
-        self._alpha_sim = tmp_res
+        self._alpha_sim = tmp_r
+
+    def _quenched_spec_wrapper(self, args, kwargs):
+        return self.quenched_spectrum(*args, **kwargs)
 
     def recompute_spectrum(self):
         """Recomputes the quenched spectrum and detector smearing, using the
@@ -354,9 +357,12 @@ class ScatterSim:
         del self._quenched_spec
         del self._result
         with Pool(cpu_count()) as p:
-            self._quenched_spec = p.starmap(self.quenched_spectrum, [(i, self.proton_factor) for i in self._alpha_sim])
+            #q_temp = p.starmap(self.quenched_spectrum, [(i, self.proton_factor)
+            #for i in self._alpha_sim])
+            q_temp = p.starmap(self._quenched_spec_wrapper, [((j, self.proton_factor), {'alpha_factor' : 0.1}) for j in self._alpha_sim])
             p.close()
-        self._quenched_spec = [l for ls in self._quenched_spec for l in ls]
+            p.join()
+        self._quenched_spec = [l for ls in q_temp for l in ls]
         print("Done computing spectrum")
             
         print("Performing detector simulation")
