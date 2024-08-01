@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['axes.formatter.useoffset'] = False
 
-s = ScatterSim(8.0, 10000, 1E-6, 200, "stoppingpowers/lab.csv", "crossections/combined_new.csv", proton_factor=0.3)
+s = ScatterSim(8.0, 10000, 1E-6, 200, "stoppingpowers/lab.csv", "crossections/diffcx_2p02MeV.csv", proton_factor=0.3)
 s.particle_sim()
 q_factors = [0.3, 0.4, 0.5]
 
@@ -18,11 +18,12 @@ def human_format(number):
     magnitude = int(floor(log(number, k)))
     return '{}{}'.format(int(number / k**magnitude), units[magnitude])
 
+fig, ax = plt.subplots()
+
 for q in q_factors:
     s.quenching_factor = q
     s.recompute_spectrum()
 
-    fig, ax = plt.subplots()
     
     counts, bins = histogram(s.result, 30)
     ax.hist(bins[:-1], bins, weights=counts, rwidth=0.8)
@@ -35,3 +36,4 @@ for q in q_factors:
     ax.set_ylabel("Count")
     fig.tight_layout()
     fig.savefig(f"10k_biglims_{str(q).replace('.', 'p')}.png")
+    fig.clear()
