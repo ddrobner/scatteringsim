@@ -18,12 +18,13 @@ def human_format(number):
     magnitude = int(floor(log(number, k)))
     return '{}{}'.format(int(number / k**magnitude), units[magnitude])
 
-fig, ax = plt.subplots()
 
 for q in q_factors:
     s.quenching_factor = q
     s.recompute_spectrum()
 
+
+    fig, ax = plt.subplots()
     
     counts, bins = histogram(s.result, 30)
     ax.hist(bins[:-1], bins, weights=counts, rwidth=0.8)
