@@ -201,7 +201,6 @@ class ScatterSim:
                 return xsample 
 
 
-    """
     def scattering_probability(self, ke) -> np.float64:
         sample_dim = 1
         sigma = self.total_crossection(ke)*1E-24
@@ -214,7 +213,6 @@ class ScatterSim:
         total_a = sample_dim**2
         #print(eff_a/total_a)
         return eff_a/total_a
-    """
 
     def scatter_sim(self) -> AlphaEvent:
         """Function to simulate a single alpha particle
@@ -228,8 +226,7 @@ class ScatterSim:
         proton_event_path, scatter_e = [], []
         scattered = False
         for s in range(len(a_path)):
-            #if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
-            if self.scattering_probability > np.random.uniform(low=0., high=1.):
+            if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
                 if not scattered:
                     # don't create these until there is a scattering 
                     alpha_out = [] 
