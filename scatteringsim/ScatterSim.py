@@ -233,7 +233,7 @@ class ScatterSim:
             palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[s]*mtoj)
             v_cm = palpha_lab/(m_alpha + m_proton)
             e_p = 0.5*m_proton*np.power(v_cm, 2)
-            if self.scattering_probability(e_p) > random.uniform(low=0., high=1.):
+            if self.scattering_probability(e_p) > random.uniform(0., 1.):
                 if not scattered:
                     # don't create these until there is a scattering 
                     alpha_out = [] 
