@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 import uproot
-
-from hist import Hist
+import matplotlib.pyplot as plt
 
 import sys
 
@@ -11,10 +10,14 @@ import sys
 cx = pd.read_csv(sys.argv[1])
 # converting to radians
 cx['theta'] = np.deg2rad(cx['theta'])
-cx['cx'] = 180/np.pi * cx['cx']
+# TODO figure this out
+#cx['cx'] = 180/np.pi * cx['cx']
 
+n_xbins = len(cx['energy'].unique())
+n_ybins = len(cx['theta'].unique())
 
+h = np.histogram2d(cx['energy'].to_numpy(), cx['theta'].to_numpy(), weights=cx['cx'].to_numpy(), bins=[n_xbins, n_ybins])
 
-
-#with uproot.recreate(sys.argv[1]) as f:
+with uproot.recreate(sys.argv[2]) as f:
+    f['cx'] = h
     
