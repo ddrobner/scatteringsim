@@ -221,18 +221,25 @@ class ScatterSim:
             AlphaEvent: The simulation data for the simulated particle 
         """
         global alpha_path
+        m_alpha = np.float128(6.646E-27) # kg
+        m_proton = np.float128(1.6726E-27) # kg
+        mtoj = 1/6.242E12
         a_path = np.frombuffer(alpha_path, dtype=np.float64)
         alpha_out = [a_path]
         proton_event_path, scatter_e = [], []
         scattered = False
         for s in range(len(a_path)):
-            if self.scattering_probability(a_path[s]) > np.random.uniform(low=0., high=1.):
+            # i need to transform into cm frame
+            palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[s]*mtoj)
+            v_cm = palpha_lab/(m_alpha + m_proton)
+            e_p = 0.5*m_proton*np.power(v_cm, 2)
+            if self.scattering_probability(e_p) > np.random.uniform(low=0., high=1.):
                 if not scattered:
                     # don't create these until there is a scattering 
                     alpha_out = [] 
                 scattered = True
                 # doing this here since this runs far more rarely
-                scatter_angle = self.scattering_angle(a_path[s])
+                scatter_angle = self.scattering_angle(e_p)
                 transfer_e = energy_transfer(a_path[s], scatter_angle)
                 print(f"Scattered: {round(scatter_angle, 4)}rad {transfer_e.e_proton}MeV p+")
                 # this should only store a reference to the alpha path and not copy
