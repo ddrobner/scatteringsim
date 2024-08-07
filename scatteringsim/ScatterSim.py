@@ -348,7 +348,7 @@ class ScatterSim:
         """Recomputes the quenched spectrum and detector smearing, using the
         same particle simulation
         """
-        print("Computing Spectrum....")
+        print(f"Computing Spectrum (q: {self.quenching_factor})....")
         if self._quenched_spec != None and self._result != None :
             self._quenched_spec.clear()
             self._result.clear()
