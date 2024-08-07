@@ -55,7 +55,6 @@ class ScatterSim:
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
         # 180/pi due to the transformation
-        self.cx['theta'] = np.deg2rad(self.cx['theta'])
         self.cx = self.cx[self.cx['theta'] >= self.theta_min]
         self.cx.reset_index(inplace=True, drop=True)
         xy = self.cx[['energy', 'theta']].to_numpy()
@@ -73,15 +72,11 @@ class ScatterSim:
                 temp_cx.append(itg)
         self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
         'Total'])
+        # convert to radians AFTER we do the integration
+        self.cx['theta'] = np.deg2rad(self.cx['theta'])
         del temp_es
         del temp_cx
 
-        # this is hardcoded for the fixed energy cx sim
-        # because the function call along with the manual computation was VERY
-        # expensive for each step
-        # and will be reserved for the 2D cx only
-        #self.scattering_probability = 2*np.pi*6.576617367299405e-08
-        
         # and set up class variable to store the outputs
         self._alpha_sim = None
         self._quenched_spec = None
@@ -177,7 +172,7 @@ class ScatterSim:
         Returns:
             np.float64: The total cross section 
         """
-        return np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
+        return 2*np.pi*np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
         #return np.trapz([i*(180/np.pi) for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
 
     # moving this to a class method to avoid all of this passing variables
@@ -212,7 +207,8 @@ class ScatterSim:
         eff_a = sigma*n
         total_a = sample_dim**2
         #print(eff_a/total_a)
-        return eff_a/total_a
+        print(2*np.pi*(eff_a/total_a))
+        return 2*np.pi*(eff_a/total_a)
 
     def scatter_sim(self) -> AlphaEvent:
         """Function to simulate a single alpha particle
@@ -233,7 +229,7 @@ class ScatterSim:
             palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[s]*mtoj)
             v_cm = palpha_lab/(m_alpha + m_proton)
             e_p = 0.5*m_proton*np.power(v_cm, 2)
-            if self.scattering_probability(e_p) > random.uniform(0., 1.):
+            if self.scattering_probability(e_p) > random.uniform(0, 1):
                 if not scattered:
                     # don't create these until there is a scattering 
                     alpha_out = [] 
