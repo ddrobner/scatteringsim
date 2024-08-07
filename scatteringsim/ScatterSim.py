@@ -55,7 +55,7 @@ class ScatterSim:
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
         # 180/pi due to the transformation
-        self.cx = self.cx[self.cx['theta'] >= self.theta_min]
+        self.cx = self.cx[self.cx['theta'] >= np.rad2deg(self.theta_min)]
         self.cx.reset_index(inplace=True, drop=True)
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
