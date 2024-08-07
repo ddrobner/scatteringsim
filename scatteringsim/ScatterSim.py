@@ -207,7 +207,6 @@ class ScatterSim:
         eff_a = sigma*n
         total_a = sample_dim**2
         #print(eff_a/total_a)
-        print(2*np.pi*(eff_a/total_a))
         return 2*np.pi*(eff_a/total_a)
 
     def scatter_sim(self) -> AlphaEvent:
