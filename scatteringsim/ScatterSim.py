@@ -66,10 +66,11 @@ class ScatterSim:
         for e in self.cx['energy'].unique():
             angles = self.cx[self.cx['energy'] == e]['theta']
             dcx = self.cx[self.cx['energy'] == e]['cx']
-            itg = np.trapz(dcx, angles)
-            if(itg != 0):
-                temp_es.append(e)
-                temp_cx.append(itg)
+            if len(angles > 3):
+                itg = np.trapz(dcx, angles)
+                if(itg != 0):
+                    temp_es.append(e)
+                    temp_cx.append(itg)
         self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
         'Total'])
         # convert to radians AFTER we do the integration
@@ -142,6 +143,9 @@ class ScatterSim:
             scale = self.cx_interpolator([(ke, i) for i in np.linspace(self.theta_min, self.theta_max, 10)]).max()
             return (1/scale)*cx_pt 
         return cx_pt
+
+    def pop_particle(self, index):
+        self._alpha_sim.pop(index)
 
     def differential_cx(self, theta : np.float64, ke : np.float64, scaled=False) -> np.float64:
         """Computed the differential cross section at a point
