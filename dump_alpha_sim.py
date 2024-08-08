@@ -28,6 +28,6 @@ with open(args.output, 'wb') as f:
     pickler = pickle.Pickler(f)
     while len(s.alpha_sim) > 0:
         if(len(s.alpha_sim[0].proton_scatters)) > 0:
-            f_data = (s.alpha_sim[0].alpha_path, s.alpha_sim[0].proton_scatters, [astuple(i) for i in s.alpha_sim[0].scatter_energy])
+            f_data = [s.alpha_sim[0].alpha_path, s.alpha_sim[0].proton_scatters, [astuple(i) for i in s.alpha_sim[0].scatter_energy]]
             pickler.dump(f_data)
         s.pop_particle(0)

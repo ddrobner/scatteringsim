@@ -80,7 +80,7 @@ class ScatterSim:
 
         # and set up class variable to store the outputs
         self._alpha_sim = None
-        self._quenched_spec = None
+        self._quenched_spec = None 
         self._result = None
 
     @property
@@ -120,7 +120,7 @@ class ScatterSim:
         return self._alpha_sim
     
     @property
-    def quenched_spectrum(self) -> list[np.float64]:
+    def quenched_s(self) -> list[np.float64]:
         """Simulated quenched spectrum
 
         Returns:
@@ -166,6 +166,14 @@ class ScatterSim:
             scale = np.interp(self.theta_min, theta_s, cx_s)
             return cx_pt/scale
         return cx_pt
+
+    def append_q(self, val):
+        try:
+            self._quenched_spec.append(val)
+        except:
+            self._quenched_spec = []
+            self._quenched_spec.append(val)
+            
 
     def total_crossection(self, ke : np.float64) -> np.float64:
         """Computes the total cross section with a trapezoidal riemann sum
@@ -368,3 +376,17 @@ class ScatterSim:
         print("Performing detector simulation")
         self._result = [self.compute_smearing(i) for i in self._quenched_spec] 
         print("Done!")
+
+    def fill_spectrum(self, num_scatters):
+        global alpha_path
+        if self._quenched_spec == None:
+            self._quenched_spec = []
+        a_path = np.frombuffer(alpha_path, dtype=np.float64)
+        ap = AlphaEvent([a_path], list(), list())
+        qv = self.quenched_spectrum(ap)
+        # fills the spectrum for loaded data 
+        alphas_left = self.num_alphas - num_scatters
+        print(f"Filling {alphas_left} events")
+        for i in range(alphas_left):
+            self._quenched_spec.append(qv)
+        self._result = [self.compute_smearing(i) for i in self._quenched_spec] 
