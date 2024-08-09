@@ -12,10 +12,11 @@ parser.add_argument('-o', '--output', type=Path)
 parser.add_argument('-s', '--stepsize', type=float, default=1E-6)
 parser.add_argument('-t', '--stoppingpower', default="stoppingpowers/lab.csv")
 parser.add_argument('-c', '--crosssection', default='crossections/combined_new3.csv')
+parser.add_argument('-e', '--energy', type=float, default=8.0)
 
 args = parser.parse_args()
 
-s = ScatterSim(8.0, args.num_alphas, args.stepsize, 200, args.stoppingpower, args.crosssection, proton_factor=0.3)
+s = ScatterSim(args.energy, args.num_alphas, args.stepsize, 200, args.stoppingpower, args.crosssection, proton_factor=0.3)
 s.particle_sim()
 
 fmt_args = {'max_line_width': 100000000, 'threshold': 100000000}
