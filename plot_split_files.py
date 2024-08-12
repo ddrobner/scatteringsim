@@ -38,7 +38,9 @@ for in_f in input_dir.iterdir():
     i_counts, i_b = bin_file(in_f, bins, s)
     counts += i_counts
 
-s.fill_spectrum(len(s.result))
+s.fill_spectrum(np.sum(counts))
+c_alpha, b_alpha = np.histogram(s.result, bins)
+counts += c_alpha
 
 def human_format(number):
     units = ['', 'K', 'M', 'G', 'T', 'P']

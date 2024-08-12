@@ -1,6 +1,5 @@
 from typing import Union, Optional
 from pathlib import Path
-from multiprocessing import Pool
 from numpy.typing import ArrayLike
 from numpy import histogram
 
