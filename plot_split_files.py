@@ -6,6 +6,7 @@ from math import floor, log
 
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams['figure.figsize'] = (12, 8)
 
 
 parser = argparse.ArgumentParser()
