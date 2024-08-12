@@ -1,2 +1,2 @@
 from scatteringsim.ScatterSim import ScatterSim
-from scatteringsim.spectrum import bin_file
+from scatteringsim.spectrum.bin_file import bin_file
