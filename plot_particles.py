@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = (12, 8)
 
 from pathlib import Path
-from scatteringsim.utils import gen_alpha_path
+from scatteringsim.utils import gen_alpha_path, read_stopping_power
 
 parser = argparse.ArgumentParser()
-parser.add_argument('i', '--input', type=Path)
+parser.add_argument('-i', '--input', type=Path)
 parser.add_argument('-o', '--output', type=Path)
 parser.add_argument('-n', '--n_alphas', type=int)
 parser.add_argument('-e', '--energy', type=float)
@@ -26,13 +26,14 @@ with open(args.input, 'rb') as f:
     up = pickle.Unpickler(f)
     p = up.load()
     for ap in p[0]:
-        hist_data.extend(ap)
-    for pp in p[1]:
-        hist_data.extend(pp)
+        hist_data.extend([0.1*i for i in ap])
+    hist_data.extend(p[1])
     n_scatters += 1
 
+stp = read_stopping_power(args.stoppingpower)
+
 for i in range(args.n_alphas - n_scatters):
-    hist_data.extend(gen_alpha_path(args.energy, args.stoppingpower, stepsize=1E-6))
+    hist_data.extend(gen_alpha_path(args.energy, stp, stepsize=1E-6))
 
 counts, bins = histogram(hist_data, 30)
 fig, ax = plt.subplots()
