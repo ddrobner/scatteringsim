@@ -14,8 +14,8 @@ parser.add_argument('-q', '--quenching', type=float)
 parser.add_argument('-i', '--input', help="Must be directory")
 parser.add_argument('-e', '--energy', type=float, default=8.0)
 parser.add_argument('-b', '--bins', type=int, default=30)
-parser.add_argument('-l', '--bin_low', type=float, default=0.0)
-parser.add_argument('-u', '--bin_high', type=float, default=2.5)
+parser.add_argument('-l', '--bin_lower', type=float, default=0.0)
+parser.add_argument('-u', '--bin_upper', type=float, default=2.5)
 
 args = parser.parse_args()
 
@@ -35,9 +35,10 @@ def quenching_wrapper(alphaevent):
     return s.quenched_spectrum(alphaevent)
 
 for in_f in input_dir.iterdir():
-    i_counts, i_b = bin_file(in_f, bins, s, quenching_wrapper)
+    i_counts, i_b = bin_file(in_f, bins, s)
     counts += i_counts
 
+s.fill_spectrum(len(s.result))
 
 def human_format(number):
     units = ['', 'K', 'M', 'G', 'T', 'P']
@@ -58,4 +59,3 @@ ax.set_ylabel("Count")
 fig.tight_layout()
 fig.savefig(f"100k_biglims_{str(s.quenching_factor).replace('.', 'p')}.png")
 fig.clear()
-
