@@ -38,7 +38,7 @@ for in_f in input_dir.iterdir():
     i_counts, i_b = bin_file(in_f, bins, s)
     counts += i_counts
 
-s.fill_spectrum(np.sum(counts))
+s.fill_spectrum(int(sum([i for i in counts])))
 c_alpha, b_alpha = np.histogram(s.result, bins)
 counts += c_alpha
 
