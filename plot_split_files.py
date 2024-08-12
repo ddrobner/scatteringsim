@@ -19,7 +19,9 @@ parser.add_argument('-u', '--bin_high', type=float, default=2.5)
 
 args = parser.parse_args()
 
-if not args.input.is_dir():
+input_dir = Path(args.input)
+
+if not input_dir.is_dir():
     raise SystemExit("Input Must Be A Directory!") 
 
 # set up the simulation and stuff
@@ -32,7 +34,7 @@ bins = np.linspace(args.bin_low, args.bin_high, args.bins)
 def quenching_wrapper(alphaevent):
     return s.quenched_spectrum(alphaevent)
 
-for in_f in args.input.iterdir():
+for in_f in input_dir.iterdir():
     i_counts, i_b = bin_file(in_f, bins, s, quenching_wrapper)
     counts += i_counts
 
