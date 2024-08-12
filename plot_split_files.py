@@ -15,7 +15,7 @@ parser.add_argument('-i', '--input', type=Path, help="Must be directory")
 parser.add_argument('-e', '--energy', type=float, default=8.0)
 parser.add_argument('-b', '--bins', type=int, default=30)
 parser.add_argument('-l', '--bin_low', type=float, default=0.0)
-parser.add_argument('-h', '--bin_high', type=float, default=2.5)
+parser.add_argument('-u', '--bin_high', type=float, default=2.5)
 
 args = parser.parse_args()
 
