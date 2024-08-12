@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--n_alphas', type=int, help="Number of alphas per file")
 parser.add_argument('-q', '--quenching', type=float)
-parser.add_argument('-i', '--input', type=Path, help="Must be directory")
+parser.add_argument('-i', '--input', help="Must be directory")
 parser.add_argument('-e', '--energy', type=float, default=8.0)
 parser.add_argument('-b', '--bins', type=int, default=30)
 parser.add_argument('-l', '--bin_low', type=float, default=0.0)
