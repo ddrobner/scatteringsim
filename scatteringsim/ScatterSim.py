@@ -55,7 +55,8 @@ class ScatterSim:
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
         # 180/pi due to the transformation
-        self.cx = self.cx[self.cx['theta'] >= np.rad2deg(self.theta_min)]
+        self.cx['theta'] = np.deg2rad(self.cx['theta'])
+        self.cx = self.cx[self.cx['theta'] >= self.theta_min]
         self.cx.reset_index(inplace=True, drop=True)
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
@@ -73,8 +74,6 @@ class ScatterSim:
                     temp_cx.append(itg)
         self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
         'Total'])
-        # convert to radians AFTER we do the integration
-        self.cx['theta'] = np.deg2rad(self.cx['theta'])
         del temp_es
         del temp_cx
 
@@ -219,7 +218,7 @@ class ScatterSim:
         eff_a = sigma*n
         total_a = sample_dim**2
         #print(eff_a/total_a)
-        return 2*np.pi*(eff_a/total_a)
+        return (eff_a/total_a)
 
     def scatter_sim(self) -> AlphaEvent:
         """Function to simulate a single alpha particle
