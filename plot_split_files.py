@@ -29,7 +29,7 @@ s = ScatterSim(args.energy, args.n_alphas, 1E-6, 200, "stoppingpowers/lab.csv", 
 
 # initialize our histogram arrays
 counts = np.zeros(args.bins)
-bins = np.linspace(args.bin_lower, args.bin_upper, args.bins)
+bins = np.linspace(args.bin_lower, args.bin_upper, args.bins+1, endpoint=True)
 
 def quenching_wrapper(alphaevent):
     return s.quenched_spectrum(alphaevent)
