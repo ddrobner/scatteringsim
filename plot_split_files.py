@@ -17,6 +17,7 @@ parser.add_argument('-e', '--energy', type=float, default=8.0)
 parser.add_argument('-b', '--bins', type=int, default=30)
 parser.add_argument('-l', '--bin_lower', type=float, default=0.0)
 parser.add_argument('-u', '--bin_upper', type=float, default=2.5)
+parser.add_argument('-p', '--file-prefix', type=str)
 
 args = parser.parse_args()
 
@@ -60,5 +61,5 @@ ax.set_title(f"{human_format(int(s.numalphas))} Alphas Spectrum (Quenching Facto
 ax.set_xlabel("Energy (MeV)")
 ax.set_ylabel("Count")
 fig.tight_layout()
-fig.savefig(f"100k_biglims_{str(s.quenching_factor).replace('.', 'p')}.png")
+fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png")
 fig.clear()
