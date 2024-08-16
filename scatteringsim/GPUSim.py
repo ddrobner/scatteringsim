@@ -108,6 +108,6 @@ class GPUSim:
     def particle_sim(self):
         scatter_rolls_gpu = crandom.uniform(low=0.0, high=1.0, size=(self.num_alphas, len(self.alpha_path)))
         #vless = cp.vectorize(cp.less)
-        output_scatters_gpu = cp.less(scatter_rolls_gpu, self.alpha_path[:, None])
+        output_scatters_gpu = cp.less(scatter_rolls_gpu, cp.array(self.alpha_path[:, None]))
         output_scatters = output_scatters_gpu.asnumpy()
         return output_scatters.nonzero()
