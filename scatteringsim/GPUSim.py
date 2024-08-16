@@ -79,6 +79,18 @@ class GPUSim:
         #self._quenched_spec = None 
         #self._result = None
 
+    def total_crossection(self, ke : np.float64) -> np.float64:
+        """Computes the total cross section with a trapezoidal riemann sum
+
+        Args:
+            ke (np.float64): The kinetic energy for the cross section 
+
+        Returns:
+            np.float64: The total cross section 
+        """
+        return 2*np.pi*np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
+        #return np.trapz([i*(180/np.pi) for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
+
     
     def scattering_probability(self, ke) -> np.float64:
         sample_dim = 1
