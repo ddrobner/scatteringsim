@@ -11,7 +11,10 @@ from decimal import Decimal
 from tqdm import tqdm
 
 import numpy as np
+import cupy as cp
 import pandas as pd
+
+import cupy.random as crandom
 
 import ctypes
 
@@ -81,6 +84,9 @@ class ScatterSim:
         self._alpha_sim = None
         self._quenched_spec = None 
         self._result = None
+
+        self._alphas_gpu = None
+        self._protons_gpu = None
 
     @property
     def numalphas(self):
@@ -389,3 +395,17 @@ class ScatterSim:
         for i in range(alphas_left):
             self._quenched_spec.append(qv)
         self._result = [self.compute_smearing(i) for i in self._quenched_spec] 
+
+    def alpha_sim_gpu(self):
+        self._alphas_gpu = cp.array()
+        self._protons_gpu = cp.array()
+        sim_kern = cp.ElementwiseKernel
+        
+
+    def detsim_gpu(self):
+        means = np.array([e_i*self.nhit for e_i in self._quenched_spec])
+        variances = np.array([np.sqrt(e_i*self.nhit) for e_i in self._quenched_spec])
+        # and now the magic :)
+        # compute a random array with those means and variances elementwise on
+        # the GPU!!
+        return crandom.normal(loc=means, scale=variances, size=means.shape())
