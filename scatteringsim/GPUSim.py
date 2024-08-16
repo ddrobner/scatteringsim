@@ -109,5 +109,5 @@ class GPUSim:
         scatter_rolls_gpu = crandom.uniform(low=0.0, high=1.0, size=(self.num_alphas, len(self.alpha_path)))
         #vless = cp.vectorize(cp.less)
         output_scatters_gpu = cp.less(scatter_rolls_gpu, cp.array(self.num_alphas*self.alpha_path))
-        output_scatters = output_scatters_gpu.asnumpy()
-        return output_scatters.nonzero()
+        #output_scatters = output_scatters_gpu.asnumpy()
+        return output_scatters_gpu.nonzero()
