@@ -206,6 +206,6 @@ class GPUSim:
         self.fill_spectrum(len(alphas_gpu))
 
     def detsim(self):
-        means = cp.array([e*self.nhit] for e in self._quenched_spec)
+        means = cp.array([e*self.nhit for e in self._quenched_spec])
         variances = cp.array([np.sqrt(e*self.nhit)/self.nhit for e in self._quenched_spec])
         self._result = crandom.normal(loc=means, scale=variances)
