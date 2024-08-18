@@ -83,6 +83,10 @@ class GPUSim:
         self._quenched_spec = [] 
         self._result = []
 
+    @property
+    def result(self):
+        return self._result
+
     def total_crossection(self, ke : np.float64) -> np.float64:
         """Computes the total cross section with a trapezoidal riemann sum
 
