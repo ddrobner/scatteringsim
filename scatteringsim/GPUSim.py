@@ -142,6 +142,8 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
         scattered_alphas = []
+        if not scatter_indexes.any():
+            return
         for alpha, step in scatter_indexes:
             # skip if it's not the first scatter per alpha
             if alpha in scattered_alphas:
@@ -189,4 +191,4 @@ class GPUSim:
     def detsim(self):
         means = cp.array([e*self.nhit] for e in self._quenched_spectrum)
         variances = cp.array([np.sqrt(e*self.nhit)/self.nhit for e in self._quenched_spectrum])
-        self._result = crandom.normal(loc=means, scale=variances, size=len(means))
+        self._result = crandom.normal(loc=means, scale=variances)
