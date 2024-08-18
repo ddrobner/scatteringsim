@@ -79,7 +79,8 @@ class GPUSim:
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
-        #self._quenched_spec = None 
+        self._proton_sim = []
+        self._quenched_spec = None 
         #self._result = None
 
     def total_crossection(self, ke : np.float64) -> np.float64:
@@ -150,14 +151,42 @@ class GPUSim:
             # grab the energy for the step which the scatter happened at
             step_energy = self.alpha_path[step]
             # make an object to hold the data
-            p = AlphaEvent()
+            #p = AlphaEvent()
             # crucially, extend with the array instead of append (for faster
             # computation later)
-            p.alpha_path.extend(self.alpha_path[0:step])
+            #p.alpha_path.extend(self.alpha_path[0:step])
+            self._alpha_sim.append(np.abs(np.diff(self.alpha_path[0:step])))
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
             a_e, p_e = energy_transfer(step_energy, scatter_angle)
-            p.alpha_path.extend(gen_alpha_path(a_e, self.stp, epsilon=self.epsilon, stepsize=self.stepsize))
-            p.proton_scatters.append(p_e)
+            #p.alpha_path.extend(gen_alpha_path(a_e, self.stp,
+            #epsilon=self.epsilon, stepsize=self.stepsize))
+            self._proton_sim.append(p_e)
+            self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp, epsilon=self.epsion, stepsize=self.stepsize))
+
+
+    def fill_spectrum(self, num_scatters):
+        global alpha_path
+        if self._quenched_spec == None:
+            self._quenched_spec = []
+        a_path = np.frombuffer(alpha_path, dtype=np.float64)
+        ap = AlphaEvent([a_path], list(), list())
+        qv = self.quenched_spectrum(ap)
+        # fills the spectrum for loaded data 
+        alphas_left = self.num_alphas - num_scatters
+        print(f"Filling {alphas_left} events")
+        for i in range(alphas_left):
+            self._quenched_spec.append(qv)
+        #self._result = [self.compute_smearing(i) for i in self._quenched_spec] 
         
-            self._alpha_sim.append(p)
+    def quenched_spectrum(self):
+        alphas_gpu = cp.array(0.1*self._alpha_sim)
+        proton_gpu = cp.array(np.multiply(self.proton_factor*self._proton_sim))
+        alpha_quench = cp.sum(alphas_gpu, axis=1)
+        self._quenched_spec.extend(cp.sum(alpha_quench, proton_gpu).asnumpy())
+        self.fill_spectrum(len(alpha_quench))
+
+    def detsim(self):
+        means = cp.array([e*self.nhit] for e in self._quenched_spectrum)
+        variances = cp.array([np.sqrt(e*self.nhit)/self.nhit for e in self._quenched_spectrum])
+        self._result = crandom.normal(loc=means, scale=variances, size=len(means))
