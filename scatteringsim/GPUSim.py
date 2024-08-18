@@ -138,15 +138,12 @@ class GPUSim:
         # now we compare a precomputed table of scattering probabilities to each column
         output_scatters_gpu = cp.less(scatter_rolls_gpu, cp.array(self.s_prob_lut[None, :]))
         scatter_alpha, scatter_step = cp.nonzero(output_scatters_gpu)
-        print(cp.asnumpy(scatter_alpha))
-        print(cp.asnumpy(scatter_step))
-
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
         scattered_alphas = []
         if not (scatter_alpha.any() or scatter_step.any()):
             return
-        for alpha, step in zip(scatter_alpha, scatter_step):
+        for alpha, step in zip(cp.asarray(scatter_alpha), cp.asarray(scatter_step)):
             # skip if it's not the first scatter per alpha
             if alpha in scattered_alphas:
                 continue
