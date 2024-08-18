@@ -181,10 +181,8 @@ class GPUSim:
         if self._quenched_spec == None:
             self._quenched_spec = []
         #a_path = np.frombuffer(alpha_path, dtype=np.float64)
-        a_path = self.alpha_path
-        ap = AlphaEvent([a_path], list(), list())
         #qv = self.quenched_spectrum(ap)
-        qv = 0.1*np.sum(ap)
+        qv = 0.1*np.sum(self.alpha_path)
         # fills the spectrum for loaded data 
         alphas_left = self.num_alphas - num_scatters
         print(f"Filling {alphas_left} events")
