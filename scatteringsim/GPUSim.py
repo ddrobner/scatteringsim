@@ -4,7 +4,10 @@ import pandas as pd
 
 import cupy.random as crandom
 
-from scatteringsim.utils import read_stopping_power, gen_alpha_path
+import random
+
+from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer
+from scatteringsim.structures import ScatterFrame, AlphaEvent
 from scipy.interpolate import LinearNDInterpolator
 
 from scipy.constants import Avogadro
@@ -75,7 +78,7 @@ class GPUSim:
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
 
         # and set up class variable to store the outputs
-        #self._alpha_sim = None
+        self._alpha_sim = []
         #self._quenched_spec = None 
         #self._result = None
 
@@ -105,9 +108,56 @@ class GPUSim:
         #print(eff_a/total_a)
         return (eff_a/total_a)
 
+    def scattering_angle(self, ke : np.float64) -> np.float64:
+        """Samples from the differential cross section to get a scattering angle
+        
+        Args:
+            ke (np.float64): The kinetic energy for the alpha
+
+        Returns:
+            np.float64: The sampled scattering angle
+        """
+        while True:
+            # first we sample from a uniform distribution of valid x-values
+            xsample = random.uniform(self.theta_min, self.theta_max)
+            # then find the scaled differential crosssection at the x-sample
+            scx = self.differential_cx(xsample, ke, scaled=True)
+            # and then return the x-sample if a random number is less than that value
+            if random.random() < scx:
+                return xsample 
+
     def particle_sim(self):
+        """Runs the particle simulation step on the GPU. Computes only the
+        scattered particles, and then the remainder is filled in the quenched
+        spectrum step 
+        """
+        # first we compute a matrix of uniform random numbers on the GPU of size
+        # (n_alphas, alpha_steps)
         scatter_rolls_gpu = crandom.uniform(low=0.0, high=1.0, size=(self.num_alphas, len(self.alpha_path)))
-        #vless = cp.vectorize(cp.less)
+        # now we compare a precomputed table of scattering probabilities to each column
         output_scatters_gpu = cp.less(scatter_rolls_gpu, cp.array(self.s_prob_lut[None, :]))
-        #output_scatters = output_scatters_gpu.asnumpy()
-        return output_scatters_gpu.nonzero()
+        scatter_indexes = output_scatters_gpu.nonzero()
+
+        # now, we take the array of nonzero indices and compute the scatters on
+        # the CPU
+        scattered_alphas = []
+        for alpha, step in scatter_indexes:
+            # skip if it's not the first scatter per alpha
+            if alpha in scattered_alphas:
+                continue
+            # and add the current alpha to the list
+            scattered_alphas.append(alpha)
+            # grab the energy for the step which the scatter happened at
+            step_energy = self.alpha_path[step]
+            # make an object to hold the data
+            p = AlphaEvent()
+            # crucially, extend with the array instead of append (for faster
+            # computation later)
+            p.alpha_path.extend(self.alpha_path[0:step])
+            # compute scattering
+            scatter_angle = self.scattering_angle(step_energy)
+            a_e, p_e = energy_transfer(step_energy, scatter_angle)
+            p.alpha_path.extend(gen_alpha_path(a_e, self.stp, epsilon=self.epsilon, stepsize=self.stepsize))
+            p.proton_scatters.append(p_e)
+        
+            self._alpha_sim.append(p)
