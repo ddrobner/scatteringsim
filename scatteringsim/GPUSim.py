@@ -142,7 +142,7 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
         scattered_alphas = []
-        if not scatter_indexes.any():
+        if not (scatter_indexes[0].any()):
             return
         for alpha, step in scatter_indexes:
             # skip if it's not the first scatter per alpha
