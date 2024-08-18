@@ -149,7 +149,7 @@ class GPUSim:
         # the CPU
         scattered_alphas = []
         print("Done GPU Particle Sim Step")
-        print(f"{scatter_alpha.shape()} scatters.")
+        print(f"{len(scatter_alpha.get())} scatters.")
         if not (scatter_alpha.any() or scatter_step.any()):
             return
         for alpha, step in zip(scatter_alpha, scatter_step):
