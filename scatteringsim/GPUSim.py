@@ -148,6 +148,8 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
         scattered_alphas = []
+        print("Done GPU Particle Sim Step")
+        print(f"{scatter_alpha.size()} scatters.")
         if not (scatter_alpha.any() or scatter_step.any()):
             return
         for alpha, step in zip(scatter_alpha, scatter_step):
