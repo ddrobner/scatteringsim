@@ -184,7 +184,7 @@ class GPUSim:
     def quenched_spectrum(self):
         alphas_gpu = 0.1*cp.array(self._alpha_sim)
         proton_gpu = self.proton_factor*cp.array(self._proton_sim)
-        alpha_quench = cp.sum(alphas_gpu, axis=1)
+        alpha_quench = cp.sum(alphas_gpu)
         self._quenched_spec.extend(cp.sum(alpha_quench, proton_gpu).asnumpy())
         self.fill_spectrum(len(alpha_quench))
 
