@@ -142,7 +142,8 @@ class GPUSim:
         # first we compute a matrix of uniform random numbers on the GPU of size
         # (n_alphas, alpha_steps)
         scatter_rolls_gpu = crandom.uniform(low=0.0, high=1.0, size=(self.num_alphas, len(self.alpha_path)))
-        # now we compare a precomputed table of scattering probabilities to each column
+        # now we compare a precomputed table of scattering probabilities to each
+        # column
         output_scatters_gpu = cp.less(scatter_rolls_gpu, cp.array(self.s_prob_lut[None, :]))
         scatter_alpha, scatter_step = cp.nonzero(output_scatters_gpu)
         # now, we take the array of nonzero indices and compute the scatters on
@@ -195,9 +196,10 @@ class GPUSim:
             proton_gpu = self.proton_factor*cp.array(self._proton_sim)
         else:
             proton_gpu = cp.array([0])
-        alpha_quench = cp.sum(alphas_gpu)
-        self._quenched_spec.extend(cp.asnumpy(cp.sum(alpha_quench, proton_gpu)))
-        self.fill_spectrum(len(alpha_quench))
+        #alpha_quench = cp.sum(alphas_gpu)
+        #proton_quench = cp.sum(proton_gpu)
+        self._quenched_spec.extend(cp.asnumpy(cp.sum(alphas_gpu, proton_gpu)))
+        self.fill_spectrum(len(alphas_gpu))
 
     def detsim(self):
         means = cp.array([e*self.nhit] for e in self._quenched_spectrum)
