@@ -80,8 +80,8 @@ class GPUSim:
         # and set up class variable to store the outputs
         self._alpha_sim = []
         self._proton_sim = []
-        self._quenched_spec = None 
-        #self._result = None
+        self._quenched_spec = [] 
+        self._result = []
 
     def total_crossection(self, ke : np.float64) -> np.float64:
         """Computes the total cross section with a trapezoidal riemann sum
