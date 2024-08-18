@@ -183,7 +183,7 @@ class GPUSim:
         
     def quenched_spectrum(self):
         alphas_gpu = 0.1*cp.array(self._alpha_sim)
-        if proton_gpu.any():
+        if len(self._proton_sim) != 0:
             proton_gpu = self.proton_factor*cp.array(self._proton_sim)
         else:
             proton_gpu = cp.array([0])
