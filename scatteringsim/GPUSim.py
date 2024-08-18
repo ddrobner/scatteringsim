@@ -127,6 +127,13 @@ class GPUSim:
             if random.random() < scx:
                 return xsample 
 
+    def differential_cx(self, theta, ke, scaled=False):
+        cx_pt = float(self.cx_interpolator((ke, theta)))
+        if scaled == True:
+            scale = self.cx_interpolator([(ke, i) for i in np.linspace(self.theta_min, self.theta_max, 10)]).max()
+            return (1/scale)*cx_pt 
+        return cx_pt 
+
     def particle_sim(self):
         """Runs the particle simulation step on the GPU. Computes only the
         scattered particles, and then the remainder is filled in the quenched
@@ -143,27 +150,27 @@ class GPUSim:
         scattered_alphas = []
         if not (scatter_alpha.any() or scatter_step.any()):
             return
-        for alpha, step in zip(cp.asarray(scatter_alpha), cp.asarray(scatter_step)):
+        for alpha, step in zip(scatter_alpha, scatter_step):
             # skip if it's not the first scatter per alpha
-            if alpha in scattered_alphas:
+            if alpha.get() in scattered_alphas:
                 continue
             # and add the current alpha to the list
-            scattered_alphas.append(alpha)
+            scattered_alphas.append(alpha.get())
             # grab the energy for the step which the scatter happened at
-            step_energy = self.alpha_path[step]
+            step_energy = self.alpha_path[step.get()]
             # make an object to hold the data
             #p = AlphaEvent()
             # crucially, extend with the array instead of append (for faster
             # computation later)
             #p.alpha_path.extend(self.alpha_path[0:step])
-            self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step])))
+            self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step.get()])))
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
             a_e, p_e = energy_transfer(step_energy, scatter_angle)
             #p.alpha_path.extend(gen_alpha_path(a_e, self.stp,
             #epsilon=self.epsilon, stepsize=self.stepsize))
             self._proton_sim.append(p_e)
-            self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp, epsilon=self.epsion, stepsize=self.stepsize))
+            self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp, epsilon=self.epsilon, stepsize=self.stepsize))
 
 
     def fill_spectrum(self, num_scatters):
