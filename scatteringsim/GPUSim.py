@@ -137,7 +137,7 @@ class GPUSim:
         scatter_rolls_gpu = crandom.uniform(low=0.0, high=1.0, size=(self.num_alphas, len(self.alpha_path)))
         # now we compare a precomputed table of scattering probabilities to each column
         output_scatters_gpu = cp.less(scatter_rolls_gpu, cp.array(self.s_prob_lut[None, :]))
-        scatter_alpha, scatter_step = cp.nonzero(output_scatters_gpu).get() 
+        scatter_alpha, scatter_step = cp.nonzero(output_scatters_gpu)
 
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
