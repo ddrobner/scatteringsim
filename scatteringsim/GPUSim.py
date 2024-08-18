@@ -180,7 +180,8 @@ class GPUSim:
         global alpha_path
         if self._quenched_spec == None:
             self._quenched_spec = []
-        a_path = np.frombuffer(alpha_path, dtype=np.float64)
+        #a_path = np.frombuffer(alpha_path, dtype=np.float64)
+        a_path = self.alpha_path
         ap = AlphaEvent([a_path], list(), list())
         qv = self.quenched_spectrum(ap)
         # fills the spectrum for loaded data 
@@ -202,7 +203,7 @@ class GPUSim:
             alphas_gpu = cp.array((0,))
         #alpha_quench = cp.sum(alphas_gpu)
         #proton_quench = cp.sum(proton_gpu)
-        self._quenched_spec.extend(cp.asnumpy(cp.sum(alphas_gpu, proton_gpu)))
+        self._quenched_spec.extend(np.asarray(cp.add(alphas_gpu, proton_gpu).get()))
         self.fill_spectrum(len(alphas_gpu))
 
     def detsim(self):
