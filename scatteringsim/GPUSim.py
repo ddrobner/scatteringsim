@@ -182,8 +182,8 @@ class GPUSim:
         #self._result = [self.compute_smearing(i) for i in self._quenched_spec] 
         
     def quenched_spectrum(self):
-        alphas_gpu = cp.array(0.1*self._alpha_sim)
-        proton_gpu = cp.array(np.multiply(self.proton_factor*self._proton_sim))
+        alphas_gpu = cp.array(0.1*np.asarray(self._alpha_sim))
+        proton_gpu = cp.array(np.multiply(self.proton_factor*np.asarray(self._proton_sim)))
         alpha_quench = cp.sum(alphas_gpu, axis=1)
         self._quenched_spec.extend(cp.sum(alpha_quench, proton_gpu).asnumpy())
         self.fill_spectrum(len(alpha_quench))
