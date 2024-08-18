@@ -153,13 +153,13 @@ class GPUSim:
             # and add the current alpha to the list
             scattered_alphas.append(alpha)
             # grab the energy for the step which the scatter happened at
-            step_energy = self.alpha_path.get()[step]
+            step_energy = cp.asnumpy(self.alpha_path)[step]
             # make an object to hold the data
             #p = AlphaEvent()
             # crucially, extend with the array instead of append (for faster
             # computation later)
             #p.alpha_path.extend(self.alpha_path[0:step])
-            self._alpha_sim.append(np.abs(np.diff(self.alpha_path.get()[0:step])))
+            self._alpha_sim.append(np.abs(np.diff(cp.asnumpy(self.alpha_path)[0:step])))
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
             a_e, p_e = energy_transfer(step_energy, scatter_angle)
