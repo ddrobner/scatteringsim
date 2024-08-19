@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 import cupy.random as crandom
+import multiprocessing as mp
 
 import random
 
@@ -130,11 +131,11 @@ class GPUSim:
         """
         while True:
             # first we sample from a uniform distribution of valid x-values
-            xsample = random.uniform(self.theta_min, self.theta_max)
+            xsample = crandom.uniform(self.theta_min, self.theta_max)
             # then find the scaled differential crosssection at the x-sample
             scx = self.differential_cx(xsample, ke, scaled=True)
             # and then return the x-sample if a random number is less than that value
-            if random.random() < scx:
+            if crandom.uniform(0., 1.) < scx:
                 return xsample 
 
     def differential_cx(self, theta, ke, scaled=False):
