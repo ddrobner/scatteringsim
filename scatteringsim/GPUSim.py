@@ -131,7 +131,7 @@ class GPUSim:
         """
         while True:
             # first we sample from a uniform distribution of valid x-values
-            xsample = crandom.uniform(self.theta_min, self.theta_max)
+            xsample = np.float32(crandom.uniform(self.theta_min, self.theta_max).get())
             # then find the scaled differential crosssection at the x-sample
             scx = self.differential_cx(xsample, ke, scaled=True)
             # and then return the x-sample if a random number is less than that value
