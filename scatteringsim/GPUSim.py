@@ -80,6 +80,8 @@ class GPUSim:
         self.alpha_steps = len(self.alpha_path)
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
 
+        self.alpha_path_gpu = cp.array(self.alpha_path)
+
         # and set up class variable to store the outputs
         self._alpha_sim = []
         self._proton_sim = []
@@ -161,7 +163,6 @@ class GPUSim:
         # the CPU
         scattered_alphas = []
         print("Done GPU Particle Sim Step")
-        print(f"{len(scatter_alpha.get())} scatters.")
         if not (scatter_alpha.any() or scatter_step.any()):
             return
         for alpha, step in zip(scatter_alpha, scatter_step):
@@ -173,18 +174,18 @@ class GPUSim:
             # grab the energy for the step which the scatter happened at
             step_energy = self.alpha_path[step.get()]
             #self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step.get()])))
-            q_1 = self.alpha_quenched_value(self.alpha_path[0:step.get()])
+            q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
             a_e, p_e = energy_transfer(step_energy, scatter_angle)
             self._proton_sim.append(self.proton_factor*p_e)
-            q_2 = self.alpha_quenched_value(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize))
+            q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             self._alpha_sim.append(q_1 + q_2)
             #self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp,
             #epsilon=self.epsilon, stepsize=self.stepsize))
 
     def alpha_quenched_value(self, alpha_deps):
-        return self.alpha_factor*np.sum(np.abs(np.diff(alpha_deps)))
+        return self.alpha_factor*cp.sum(cp.abs(cp.diff(alpha_deps)))
         
 
 
