@@ -218,7 +218,8 @@ class GPUSim:
             p_e = transf.e_proton
             self._proton_sim.append(self.proton_factor*p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
-            self._alpha_sim.append(np.float32((q_1 + q_2).get()))
+            #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
+            self._alpha_sim.append(q_1 + q_2)
             #self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp,
             #epsilon=self.epsilon, stepsize=self.stepsize))
 
@@ -243,7 +244,7 @@ class GPUSim:
         
     def quenched_spectrum(self):
         if (len(self._proton_sim) != 0) and (len(self._alpha_sim) != 0):
-            self._quenched_spec.extend(np.add(self._alpha_sim, self._proton_sim).get())
+            self._quenched_spec.extend(np.asarray(cp.add(self._alpha_sim, self._proton_sim).get()))
         self.fill_spectrum(len(self._alpha_sim))
 
     def detsim(self):
