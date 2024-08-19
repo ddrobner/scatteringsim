@@ -217,4 +217,4 @@ class GPUSim:
     def detsim(self):
         means = cp.array([e*self.nhit for e in self._quenched_spec])
         variances = cp.array([np.sqrt(e*self.nhit)/self.nhit for e in self._quenched_spec])
-        self._result = crandom.normal(loc=means, scale=variances)
+        self._result = np.asarray(cp.divide(crandom.normal(loc=means, scale=variances), self.nhit).get())
