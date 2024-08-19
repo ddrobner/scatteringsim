@@ -218,7 +218,7 @@ class GPUSim:
             p_e = transf.e_proton
             self._proton_sim.append(self.proton_factor*p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
-            self._alpha_sim.append(q_1 + q_2)
+            self._alpha_sim.append(np.float32((q_1 + q_2).get()))
             #self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp,
             #epsilon=self.epsilon, stepsize=self.stepsize))
 
