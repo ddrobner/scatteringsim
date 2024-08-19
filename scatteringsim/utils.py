@@ -11,7 +11,7 @@ def read_stopping_power(filename) -> pd.DataFrame:
     stoppingpowers.columns = ["KE", "electron", "nuclear", "total"]
     return stoppingpowers
 
-def stp_interp(energy:float, stp: pd.DataFrame) -> np.float64:
+def stp_interp(energy:float, stp: pd.DataFrame) -> np.float32:
     # NOTE this assumes that the stopping powers are sorted
     # we get them this way from ASTAR so it's not an issue, but we can fix that if need be
     for k in stp.index:
@@ -20,7 +20,7 @@ def stp_interp(energy:float, stp: pd.DataFrame) -> np.float64:
         else:
             return ((list(stp["total"])[-1])/list(stp["KE"])[-1])*energy
 
-def gen_alpha_path(e_0, stp, epsilon=0.1, stepsize=0.001) -> npt.NDArray[np.float64]:
+def gen_alpha_path(e_0, stp, epsilon=0.1, stepsize=0.001) -> npt.NDArray[np.float32]:
     e_i = e_0
     alpha_path = []
     while e_i > epsilon:
@@ -40,4 +40,4 @@ def energy_transfer(e_alpha, scatter_angle):
     ealpha_f = e_alpha*frac_energy + e_alpha
     eproton_f = np.abs(e_alpha*frac_energy)
 
-    return ScatterFrame(ealpha_f, eproton_f, Theta)
+    return ScatterFrame(np.float32(ealpha_f), np.float32(eproton_f), np.float32(Theta))
