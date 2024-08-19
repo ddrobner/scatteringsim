@@ -84,6 +84,10 @@ class GPUSim:
         self._result = []
 
     @property
+    def quenched_spec(self):
+        return self._quenched_spec
+
+    @property
     def result(self):
         return self._result
 
