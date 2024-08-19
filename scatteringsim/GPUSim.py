@@ -213,7 +213,9 @@ class GPUSim:
             q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
-            a_e, p_e = energy_transfer(step_energy, scatter_angle)
+            transf = energy_transfer(step_energy, scatter_angle)
+            a_e = transf.e_alpha
+            p_e = transf.e_proton
             self._proton_sim.append(self.proton_factor*p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             self._alpha_sim.append(q_1 + q_2)
