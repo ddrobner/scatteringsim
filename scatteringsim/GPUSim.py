@@ -112,6 +112,7 @@ class GPUSim:
         # this might be a cheat but I think I'm going to just interpolate
         # between the inverse dist values for each KE
         dk = list(self.cx_inverse_dists.keys())
+        dk.sort()
         
         i = 0
         j = 1
@@ -126,6 +127,7 @@ class GPUSim:
                 return np.interp(ke, [low_e, high_e], [low_interp(random.uniform(0, 1)), high_interp(random.uniform(0, 1))]) 
             i += 1
             j += 1
+        return 0
 
     def total_crossection(self, ke : np.float64) -> np.float64:
         """Computes the total cross section with a trapezoidal riemann sum
