@@ -136,7 +136,7 @@ class GPUSim:
             scx = self.differential_cx(xsample, ke, scaled=True)
             # and then return the x-sample if a random number is less than that value
             if crandom.uniform(0., 1) < scx:
-                return xsample.get() 
+                return np.float32(xsample.get())
 
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
