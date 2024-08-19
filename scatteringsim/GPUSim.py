@@ -123,7 +123,7 @@ class GPUSim:
                 high_e = dk[j]
                 high_interp = self.cx_inverse_dists[high_e]
 
-                return np.interp(ke, [low_e, high_e], [low_interp(random.uniform()), high_interp(random.uniform())]) 
+                return np.interp(ke, [low_e, high_e], [low_interp(random.uniform(0, 1)), high_interp(random.uniform(0, 1))]) 
             i += 1
             j += 1
 
