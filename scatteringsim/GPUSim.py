@@ -111,7 +111,7 @@ class GPUSim:
     def scattering_angle(self, ke) -> np.float32:
         # this might be a cheat but I think I'm going to just interpolate
         # between the inverse dist values for each KE
-        dk = list(self.cx_inverse_dists.keys)
+        dk = list(self.cx_inverse_dists.keys())
         
         i = 0
         j = 1
