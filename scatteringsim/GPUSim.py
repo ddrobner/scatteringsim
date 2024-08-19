@@ -9,7 +9,7 @@ import random
 
 from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer
 from scatteringsim.structures import ScatterFrame, AlphaEvent
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from scipy.constants import Avogadro
 
@@ -81,6 +81,9 @@ class GPUSim:
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
 
         self.alpha_path_gpu = cp.array(self.alpha_path)
+        self.cx_inverse_dists = dict()
+        for e in self.cx['energy'].unique():
+            self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
@@ -95,6 +98,32 @@ class GPUSim:
     @property
     def result(self):
         return self._result
+
+    def gen_inverse_dist(self, ke):
+        x = np.linspace(self.theta_min, self.theta_max, 100)
+        y = self.cx_interpolator(ke, x)
+        cdf_y = np.cumsum(y)
+        cdf_y = cdf_y/cdf_y.max()
+        inverse_cdf = interp1d(cdf_y, x)
+        # this is a function
+        return inverse_cdf
+
+    def scattering_angle(self, ke) -> np.float32:
+        # this might be a cheat but I think I'm going to just interpolate
+        # between the inverse dist values for each KE
+        i = 0
+        j = 1
+        while j < len(self.cx_inverse_dists.keys()):
+            if self.cx_inverse_dists.keys()[i] < ke and self.cx_inverse_dists.keys()[j] > ke:
+                low_e = self.cx_inverse_dists.keys()[i]
+                low_interp = self.cx_inverse_dists[low_e]
+                
+                high_e = self.cx_inverse_dists.keys()[j]
+                high_interp = self.cx_inverse_dists[high_e]
+
+                return np.interp(ke, [low_e, high_e], [low_interp(random.uniform()), high_interp(random.uniform())]) 
+            i += 1
+            j += 1
 
     def total_crossection(self, ke : np.float64) -> np.float64:
         """Computes the total cross section with a trapezoidal riemann sum
@@ -122,15 +151,16 @@ class GPUSim:
         #print(eff_a/total_a)
         return (eff_a/total_a)
 
+    """
     def scattering_angle(self, ke : np.float64) -> np.float64:
-        """Samples from the differential cross section to get a scattering angle
+        Samples from the differential cross section to get a scattering angle
         
         Args:
             ke (np.float64): The kinetic energy for the alpha
 
         Returns:
             np.float64: The sampled scattering angle
-        """
+        
         while True:
             # first we sample from a uniform distribution of valid x-values
             xsample = np.float32(crandom.uniform(self.theta_min, self.theta_max).get())
@@ -139,6 +169,8 @@ class GPUSim:
             # and then return the x-sample if a random number is less than that value
             if crandom.uniform(0., 1) < scx:
                 return cp.float32(xsample.get())
+    """
+        
 
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
