@@ -135,8 +135,8 @@ class GPUSim:
             # then find the scaled differential crosssection at the x-sample
             scx = self.differential_cx(xsample, ke, scaled=True)
             # and then return the x-sample if a random number is less than that value
-            if crandom.uniform(0., 1.) < scx:
-                return xsample 
+            if crandom.uniform(0., 1) < scx:
+                return xsample.get() 
 
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
