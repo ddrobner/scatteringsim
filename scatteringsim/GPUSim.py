@@ -97,6 +97,7 @@ class GPUSim:
             'Total'])
             del temp_es
             del temp_cx
+            self.total_cx.to_csv(tcx_fname)
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
@@ -147,8 +148,8 @@ class GPUSim:
 
     def gen_inverse_dist(self, ke):
         #x = np.linspace(self.theta_min, self.theta_max, 10000)
-        x = self.cx[self.cx['energy'] == ke]['energy'].numpy()
-        y = self.cx[self.cx['energy'] == ke]['theta'].numpy()
+        x = self.cx[self.cx['energy'] == ke]['energy'].to_numpy()
+        y = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
         #y = self.cx_interpolator((ke, x))
         print(y)
         cdf_y = np.cumsum(y)
