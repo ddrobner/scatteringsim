@@ -263,6 +263,7 @@ class GPUSim:
             q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
+            print(f"Scatter Angle: {scatter_angle}")
             transf = energy_transfer(step_energy, scatter_angle)
             a_e = transf.e_alpha
             p_e = transf.e_proton
