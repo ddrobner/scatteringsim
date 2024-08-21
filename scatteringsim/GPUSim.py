@@ -6,6 +6,8 @@ import cupy.random as crandom
 import multiprocessing as mp
 import pickle
 
+from pathlib import Path
+
 import random
 
 from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer
@@ -78,7 +80,7 @@ class GPUSim:
         self.cx_interpolator = LinearNDInterpolator(xy, z)
 
         self.total_cx = []
-        tcx_fname = f"total_{cx_fname}.csv"
+        tcx_fname = f"total_{Path(cx_fname).name}.csv"
         if isfile(tcx_fname):
             self.total_cx = pd.read_csv(tcx_fname)
         else:
