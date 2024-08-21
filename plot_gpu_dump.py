@@ -29,6 +29,7 @@ for i_f in args.input.iterdir():
         while True:
             try:
                 p_data = up.load()
+                print(p_data)
                 s.add_particle(p_data[0], p_data[1])
             except EOFError:
                 break
@@ -42,6 +43,7 @@ def human_format(number):
     magnitude = int(floor(log(number, k)))
     return '{}{}'.format(int(number / k**magnitude), units[magnitude])
 
+print(f"Result len: {len(s.result)}")
 counts, bins = histogram(s.result, 30)
 fig, ax = plt.subplots()
 ax.hist(bins[:-1], bins, weights=counts, rwidth=0.8)
