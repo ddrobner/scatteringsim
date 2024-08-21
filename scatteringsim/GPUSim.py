@@ -149,7 +149,7 @@ class GPUSim:
                 return np.interp(ke, [low_e, high_e], [low_interp(random.uniform(0, 1)), high_interp(random.uniform(0, 1))]) 
             i += 1
             j += 1
-        return 0
+        return self.theta_min
 
     def total_crossection(self, ke : np.float32) -> np.float32:
         """Computes the total cross section with a trapezoidal riemann sum
@@ -238,7 +238,9 @@ class GPUSim:
             transf = energy_transfer(step_energy, scatter_angle)
             a_e = transf.e_alpha
             p_e = transf.e_proton
-            self._proton_sim.append(self.proton_factor*p_e)
+            if np.isnan(p_e):
+                print("Proton Energy is NaN!!!!")
+            self._proton_sim.append(p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
             self._alpha_sim.append(np.float32((q_1 + q_2).get()))
