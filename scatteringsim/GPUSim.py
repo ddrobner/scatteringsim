@@ -80,7 +80,7 @@ class GPUSim:
         self.cx_interpolator = LinearNDInterpolator(xy, z)
 
         self.total_cx = []
-        tcx_fname = f"total_{Path(cx_fname).name}.csv"
+        tcx_fname = f"total_{Path(cx_fname).name}"
         if isfile(tcx_fname):
             self.total_cx = pd.read_csv(tcx_fname)
         else:
