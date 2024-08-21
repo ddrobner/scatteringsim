@@ -23,7 +23,6 @@ class GPUSim:
         
         # declaring some constants 
         self.stp = read_stopping_power(stp_fname)
-        print('read stopping power')
         self.e_0 = e_0
         self.num_alphas = num_alphas
         self.proton_factor = proton_factor
@@ -62,7 +61,6 @@ class GPUSim:
 
         
         self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
-        print("Loaded Alpha Path")
         # can have no lock here since the array is read only
         #alpha_path = mparray(ctypes.c_double, apath_base)
 
@@ -77,14 +75,12 @@ class GPUSim:
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
-        print("Set Up CX Interp")
         # set up a lookup table for the riemann sums
         self.total_cx = pd.DataFrame(pd.read_csv(total_cx_fname, dtype=np.float32), columns=['Energy', 'Total'])
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
-        print("Setup all else")
 
         self.alpha_path_gpu = cp.array(self.alpha_path)
         self.cx_inverse_dists = dict()
