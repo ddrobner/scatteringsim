@@ -162,13 +162,15 @@ class GPUSim:
         # between the inverse dist values for each KE
         dk = list(self.cx_inverse_dists.keys())
         dk.sort()
+
+        rsaved = random.uniform(0, 1)
         
         if ke < dk[0]:
-            return self.cx_inverse_dists[dk[0]](random.uniform(0, 1))
+            return self.cx_inverse_dists[dk[0]](rsaved)
         elif ke > dk[-1]:
-            return self.cx_inverse_dists[dk[-1]](random.uniform(0, 1))
+            return self.cx_inverse_dists[dk[-1]](rsaved)
 
-        return np.interp(ke, dk, [self.cx_inverse_dists[i] for i in dk])
+        return np.interp(ke, dk, [self.cx_inverse_dists[i](rsaved) for i in dk])
 
 
     def total_crossection(self, ke : np.float32) -> np.float32:
