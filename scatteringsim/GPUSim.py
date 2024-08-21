@@ -173,6 +173,9 @@ class GPUSim:
             return self.cx_inverse_dists[dk[0]](random.uniform(0, 1))
         elif ke > dk[-1]:
             return self.cx_inverse_dists[dk[-1]](random.uniform(0, 1))
+
+        return np.interp(ke, dk, [self.cx_inverse_dists[i] for i in dk])
+        """
         
         while j < len(dk):
             if dk[i] < ke and dk[j] > ke:
@@ -181,10 +184,16 @@ class GPUSim:
                 
                 high_e = dk[j]
                 high_interp = self.cx_inverse_dists[high_e]
+                
+                if ke < low_e:
+                    return low_interp(random.uniform(0, 1))
+                elif ke > high_e:
+                    return high_interp(random.uniform(0, 1))
 
                 return np.interp(ke, [low_e, high_e], [low_interp(random.uniform(0, 1)), high_interp(random.uniform(0, 1))]) 
             i += 1
             j += 1
+        """
 
     def total_crossection(self, ke : np.float32) -> np.float32:
         """Computes the total cross section with a trapezoidal riemann sum
