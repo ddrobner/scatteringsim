@@ -50,7 +50,7 @@ class GPUSim:
 
         # dump alpha path to disk if it doesn't exist and load it if it does
         alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p")}"
-        self.alpha_path = np.array()
+        self.alpha_path = np.empty()
         if isfile(alpha_path_fname):
             with open(alpha_path_fname, 'rb') as f:
                 self.alpha_path = pickle.load(f)
@@ -247,7 +247,6 @@ class GPUSim:
         return alpha_factor*cp.sum(cp.abs(cp.diff(alpha_deps)))
         
     def fill_spectrum(self, num_scatters):
-        global alpha_path
         if self._quenched_spec == None:
             self._quenched_spec = []
         #a_path = np.frombuffer(alpha_path, dtype=np.float64)
