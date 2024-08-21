@@ -23,6 +23,7 @@ class GPUSim:
         
         # declaring some constants 
         self.stp = read_stopping_power(stp_fname)
+        print('read stopping power')
         self.e_0 = e_0
         self.num_alphas = num_alphas
         self.proton_factor = proton_factor
