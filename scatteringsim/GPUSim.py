@@ -151,6 +151,7 @@ class GPUSim:
         y = []
         for xpt in x:
             y.append(self.cx_interpolator((ke, xpt)))
+        print(y)
         cdf_y = np.cumsum(y)
         print(f"ycdf max: {cdf_y.max()}")
         cdf_y = cdf_y/cdf_y.max()
