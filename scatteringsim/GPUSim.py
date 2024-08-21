@@ -114,6 +114,10 @@ class GPUSim:
         return self._quenched_spec
 
     @property
+    def quenching_factor(self):
+        return self.proton_factor
+
+    @property
     def result(self):
         return self._result
 
