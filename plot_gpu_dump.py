@@ -25,7 +25,7 @@ s = GPUSim(args.energy, args.num_alphas, args.stepsize, 200, args.stoppingpower,
 
 for i_f in args.input.iterdir():
     with open(i_f, 'rb') as f:
-        up = pickle.Unpicker(f)
+        up = pickle.Unpiclker(f)
         while True:
             try:
                 p_data = up.load()
