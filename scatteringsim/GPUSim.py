@@ -76,7 +76,7 @@ class GPUSim:
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
         # set up a lookup table for the riemann sums
-        self.total_cx = pd.read_csv(total_cx_fname, names=['Energy', 'Total'])
+        self.total_cx = pd.read_csv(total_cx_fname, names=['Energy', 'Total'], dtype=np.float32)
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
@@ -147,20 +147,20 @@ class GPUSim:
             j += 1
         return 0
 
-    def total_crossection(self, ke : np.float64) -> np.float64:
+    def total_crossection(self, ke : np.float32) -> np.float32:
         """Computes the total cross section with a trapezoidal riemann sum
 
         Args:
-            ke (np.float64): The kinetic energy for the cross section 
+            ke (np.float32): The kinetic energy for the cross section 
 
         Returns:
-            np.float64: The total cross section 
+            np.float32: The total cross section 
         """
         return 2*np.pi*np.interp(ke, self.total_cx['Energy'].to_numpy(), self.total_cx['Total'].to_numpy())
         #return np.trapz([i*(180/np.pi) for i in self.cx['cx'].to_numpy()], self.cx['theta'].to_numpy())
 
     
-    def scattering_probability(self, ke) -> np.float64:
+    def scattering_probability(self, ke) -> np.float32:
         sample_dim = 1
         sigma = self.total_crossection(ke)*1E-24
 
