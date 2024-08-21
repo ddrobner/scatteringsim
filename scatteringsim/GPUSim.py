@@ -76,7 +76,7 @@ class GPUSim:
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
         # set up a lookup table for the riemann sums
-        self.total_cx = pd.read_csv(total_cx_fname, columns=['Energy', 'Total'])
+        self.total_cx = pd.read_csv(total_cx_fname, names=['Energy', 'Total'])
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
