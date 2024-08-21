@@ -67,7 +67,7 @@ class GPUSim:
         #alpha_path = mparray(ctypes.c_double, apath_base)
 
         # now we handle setting up the cross section
-        self.cx = pd.read_csv(cx_fname)
+        self.cx = pd.read_csv(cx_fname, dtype=np.float32)
 
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
@@ -82,7 +82,7 @@ class GPUSim:
         self.total_cx = []
         tcx_fname = f"total_{Path(cx_fname).name}"
         if isfile(tcx_fname):
-            self.total_cx = pd.read_csv(tcx_fname)
+            self.total_cx = pd.read_csv(tcx_fname, dtype=np.float32)
         else:
             # set up a lookup table for the riemann sums
             temp_es = []
@@ -99,7 +99,7 @@ class GPUSim:
             'Total'])
             del temp_es
             del temp_cx
-            self.total_cx.to_csv(tcx_fname)
+            self.total_cx.to_csv(tcx_fname, index=False)
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
