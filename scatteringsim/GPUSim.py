@@ -163,6 +163,9 @@ class GPUSim:
         dk = list(self.cx_inverse_dists.keys())
         dk.sort()
 
+        print(dk[0])
+        print(dk[-1])
+
         rsaved = random.uniform(0, 1)
         
         if ke < dk[0]:
