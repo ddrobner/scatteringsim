@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import argparse
 import pickle
 
+plt.rcParams['figure.figsize'] = (12, 8)
+
 parser = argparse.ArgumentParser(prog='SplitFilePlot', description='Finalizes analysis of split simulation')
 
 parser.add_argument('-n', '--num_alphas', type=int)
