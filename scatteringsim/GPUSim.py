@@ -50,7 +50,7 @@ class GPUSim:
 
         # dump alpha path to disk if it doesn't exist and load it if it does
         alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p")}"
-        self.alpha_path = np.empty()
+        self.alpha_path = [] 
         if isfile(alpha_path_fname):
             with open(alpha_path_fname, 'rb') as f:
                 self.alpha_path = pickle.load(f)
