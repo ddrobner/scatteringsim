@@ -66,6 +66,7 @@ class GPUSim:
 
         # now we handle setting up the cross section
         self.cx = pd.read_csv(cx_fname)
+
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
         # 180/pi due to the transformation
@@ -75,21 +76,27 @@ class GPUSim:
         xy = self.cx[['energy', 'theta']].to_numpy()
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
-        # set up a lookup table for the riemann sums
-        temp_es = []
-        temp_cx = []
-        for e in self.cx['energy'].unique():
-            angles = self.cx[self.cx['energy'] == e]['theta']
-            dcx = self.cx[self.cx['energy'] == e]['cx']
-            if len(angles > 3):
-                itg = np.trapz(dcx, angles)
-                if(itg != 0):
-                    temp_es.append(e)
-                    temp_cx.append(itg)
-        self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
-        'Total'])
-        del temp_es
-        del temp_cx
+
+        self.total_cx = []
+        tcx_fname = f"total_{cx_fname}.csv"
+        if isfile(tcx_fname):
+            self.total_cx = pd.read_csv(tcx_fname)
+        else:
+            # set up a lookup table for the riemann sums
+            temp_es = []
+            temp_cx = []
+            for e in self.cx['energy'].unique():
+                angles = self.cx[self.cx['energy'] == e]['theta']
+                dcx = self.cx[self.cx['energy'] == e]['cx']
+                if len(angles > 3):
+                    itg = np.trapz(dcx, angles)
+                    if(itg != 0):
+                        temp_es.append(e)
+                        temp_cx.append(itg)
+            self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
+            'Total'])
+            del temp_es
+            del temp_cx
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
