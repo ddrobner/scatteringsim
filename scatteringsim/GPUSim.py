@@ -149,13 +149,9 @@ class GPUSim:
         return self._result
 
     def gen_inverse_dist(self, ke):
-        #x = np.linspace(self.theta_min, self.theta_max, 10000)
         x = self.cx[self.cx['energy'] == ke]['energy'].to_numpy()
         y = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
-        #y = self.cx_interpolator((ke, x))
-        print(y)
         cdf_y = np.cumsum(y)
-        print(f"ycdf max: {cdf_y.max()}")
         cdf_y = cdf_y/cdf_y.max()
         inverse_cdf = interp1d(cdf_y, x)
         # this is a function
@@ -167,33 +163,13 @@ class GPUSim:
         dk = list(self.cx_inverse_dists.keys())
         dk.sort()
         
-        i = 0
-        j = 1
         if ke < dk[0]:
             return self.cx_inverse_dists[dk[0]](random.uniform(0, 1))
         elif ke > dk[-1]:
             return self.cx_inverse_dists[dk[-1]](random.uniform(0, 1))
 
         return np.interp(ke, dk, [self.cx_inverse_dists[i] for i in dk])
-        """
-        
-        while j < len(dk):
-            if dk[i] < ke and dk[j] > ke:
-                low_e = dk[i]
-                low_interp = self.cx_inverse_dists[low_e]
-                
-                high_e = dk[j]
-                high_interp = self.cx_inverse_dists[high_e]
-                
-                if ke < low_e:
-                    return low_interp(random.uniform(0, 1))
-                elif ke > high_e:
-                    return high_interp(random.uniform(0, 1))
 
-                return np.interp(ke, [low_e, high_e], [low_interp(random.uniform(0, 1)), high_interp(random.uniform(0, 1))]) 
-            i += 1
-            j += 1
-        """
 
     def total_crossection(self, ke : np.float32) -> np.float32:
         """Computes the total cross section with a trapezoidal riemann sum
@@ -282,8 +258,8 @@ class GPUSim:
             transf = energy_transfer(step_energy, scatter_angle)
             a_e = transf.e_alpha
             p_e = transf.e_proton
-            #if np.isnan(p_e):
-            #    print("Proton Energy is NaN!!!!")
+            if np.isnan(p_e):
+                print("Proton Energy is NaN!!!!")
             self._proton_sim.append(p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
