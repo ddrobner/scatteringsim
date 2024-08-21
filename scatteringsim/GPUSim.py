@@ -243,7 +243,7 @@ class GPUSim:
         
     def quenched_spectrum(self):
         if (len(self._proton_sim) != 0) and (len(self._alpha_sim) != 0):
-            self._quenched_spec.extend(np.add(self._alpha_sim, self._proton_sim))
+            self._quenched_spec.extend(np.add(np.multiply(self.alpha_factor, self._alpha_sim), np.multiply(self.proton_factor, self._proton_sim)))
         self.fill_spectrum(len(self._alpha_sim))
 
     def detsim(self):
