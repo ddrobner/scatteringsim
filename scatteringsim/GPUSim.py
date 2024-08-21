@@ -223,11 +223,11 @@ class GPUSim:
             #self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp,
             #epsilon=self.epsilon, stepsize=self.stepsize))
 
-    def alpha_quenched_value(self, alpha_deps):
-        return self.alpha_factor*cp.sum(cp.abs(cp.diff(alpha_deps)))
+    def alpha_quenched_value(self, alpha_deps, alpha_factor = 1.0):
+        # want the factor to be one here - so later we can plot for different
+        # quenching factors
+        return alpha_factor*cp.sum(cp.abs(cp.diff(alpha_deps)))
         
-
-
     def fill_spectrum(self, num_scatters):
         global alpha_path
         if self._quenched_spec == None:
