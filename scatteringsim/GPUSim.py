@@ -146,8 +146,10 @@ class GPUSim:
         return self._result
 
     def gen_inverse_dist(self, ke):
-        x = np.linspace(self.theta_min+0.01, self.theta_max-0.01, 10000)
+        x = np.linspace(self.theta_min, self.theta_max, 10000)
+        print(x)
         y = self.cx_interpolator((ke, x))
+        print(y)
         print(y)
         cdf_y = np.cumsum(y)
         print(f"ycdf max: {cdf_y.max()}")
@@ -265,12 +267,11 @@ class GPUSim:
             q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
-            print(f"Scatter Angle: {scatter_angle}")
             transf = energy_transfer(step_energy, scatter_angle)
             a_e = transf.e_alpha
             p_e = transf.e_proton
-            if np.isnan(p_e):
-                print("Proton Energy is NaN!!!!")
+            #if np.isnan(p_e):
+            #    print("Proton Energy is NaN!!!!")
             self._proton_sim.append(p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
