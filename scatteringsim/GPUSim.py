@@ -4,18 +4,20 @@ import pandas as pd
 
 import cupy.random as crandom
 import multiprocessing as mp
+import pickle
 
 import random
 
 from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer
 from scatteringsim.structures import ScatterFrame, AlphaEvent
 from scipy.interpolate import LinearNDInterpolator, interp1d
+from os.path import isfile
 
 from scipy.constants import Avogadro
 
 
 class GPUSim:
-    def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, proton_factor: float = 0.5):
+    def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, total_cx_fname: str = "crosssections/endf.csv", proton_factor: float = 0.5):
         # declaring this as a global to speed up multprocessing 
         #global alpha_path
         
@@ -45,6 +47,19 @@ class GPUSim:
 
         # declaring this as a class variable for now since I don't write to it
         # so it doesn't get copied on pickling
+
+        # dump alpha path to disk if it doesn't exist and load it if it does
+        alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p")}"
+        self.alpha_path = np.array()
+        if isfile(alpha_path_fname):
+            with open(alpha_path_fname, 'rb') as f:
+                self.alpha_path = pickle.load(f)
+        else:
+            self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
+            with open(alpha_path_fname, 'wb') as f:
+                pickle.dump(self.alpha_path, f)
+
+        
         self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
         # can have no lock here since the array is read only
         #alpha_path = mparray(ctypes.c_double, apath_base)
@@ -61,20 +76,7 @@ class GPUSim:
         z = self.cx['cx'].to_numpy()
         self.cx_interpolator = LinearNDInterpolator(xy, z)
         # set up a lookup table for the riemann sums
-        temp_es = []
-        temp_cx = []
-        for e in self.cx['energy'].unique():
-            angles = self.cx[self.cx['energy'] == e]['theta']
-            dcx = self.cx[self.cx['energy'] == e]['cx']
-            if len(angles > 3):
-                itg = np.trapz(dcx, angles)
-                if(itg != 0):
-                    temp_es.append(e)
-                    temp_cx.append(itg)
-        self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
-        'Total'])
-        del temp_es
-        del temp_cx
+        self.total_cx = pd.read_csv(total_cx_fname, columns=['Energy', 'Total'])
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
