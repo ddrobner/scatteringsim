@@ -230,8 +230,10 @@ class GPUSim:
         scattered_alphas = []
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
+            print("No Scatters :(")
             return
         for alpha, step in zip(scatter_alpha, scatter_step):
+            print("Scatter :)")
             # skip if it's not the first scatter per alpha
             if alpha.get() in scattered_alphas:
                 continue
