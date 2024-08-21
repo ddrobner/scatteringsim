@@ -149,6 +149,7 @@ class GPUSim:
         x = np.linspace(self.theta_min, self.theta_max, 100)
         y = self.cx_interpolator(ke, x)
         cdf_y = np.cumsum(y)
+        print(f"ycdf max: {cdf_y.max()}")
         cdf_y = cdf_y/cdf_y.max()
         inverse_cdf = interp1d(cdf_y, x)
         # this is a function
