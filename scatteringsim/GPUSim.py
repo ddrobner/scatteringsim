@@ -96,6 +96,10 @@ class GPUSim:
     @property
     def alpha_sim(self):
         return self._alpha_sim
+
+    @property
+    def numalphas(self):
+        return self.num_alphas
     
     @property
     def proton_sim(self):
