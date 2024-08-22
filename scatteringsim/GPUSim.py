@@ -150,9 +150,13 @@ class GPUSim:
         return self._result
 
     def gen_inverse_dist(self, ke):
+        print("----------------------------------------------------")
         x = np.linspace(self.theta_min, self.theta_max, 1000)
         y = [self.cx_interpolator((ke, i)) for i in x]
+        print(x)
+        print(y)
         cdf_y = np.cumsum(y)
+        print(cdf_y)
         cdf_y = cdf_y/cdf_y.max()
         inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
         # this is a function
