@@ -115,15 +115,7 @@ class GPUSim:
         self.alpha_path_gpu = cp.array(self.alpha_path)
         self.cx_inverse_dists = dict()
         for e in self.cx['energy'].unique():
-            it_fname = f"cx_interps/{str(e).replace(".", "p")}"
-            if isfile(it_fname):
-                with open(it_fname, 'rb') as f:
-                    self.cx_inverse_dists[e] = pickle.load(f)
-            else:
-                if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
-                    self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
-                    with open(it_fname, 'wb') as f:
-                        pickle.dump(self.cx_inverse_dists[e], f, protocol=5)
+            self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
