@@ -21,11 +21,10 @@ s.particle_sim()
 
 # this is a bit weird, but I'm doing this here to free the memory of each alpha
 # as it gets dumped
-if (len(s.alpha_sim) > 0) and (len(s.proton_sim) > 0):
-    with open(args.output, 'wb') as f:
-        # pickle allows you to load incrementally if you write incrementally :)
-        # so I can write one alpha at a time to the file, and load it as such in the future
-        pickler = pickle.Pickler(f)
-        while len(s.alpha_sim) > 0 and len(s.proton_sim) > 0:
-            pickler.dump((s.alpha_sim[0], s.proton_sim[0]))
-            s.pop_particle(0)
+with open(args.output, 'wb') as f:
+    # pickle allows you to load incrementally if you write incrementally :)
+    # so I can write one alpha at a time to the file, and load it as such in the future
+    pickler = pickle.Pickler(f)
+    while len(s.alpha_sim) > 0 and len(s.proton_sim) > 0:
+        pickler.dump((s.alpha_sim[0], s.proton_sim[0]))
+        s.pop_particle(0)
