@@ -59,7 +59,7 @@ class GPUSim:
         else:
             self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
             with open(alpha_path_fname, 'wb') as f:
-                pickle.dump(self.alpha_path, f)
+                pickle.dump(self.alpha_path, f, protocol=2)
 
         
         #self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
@@ -84,7 +84,7 @@ class GPUSim:
             z = self.cx['cx'].to_numpy()
             self.cx_interpolator = LinearNDInterpolator(xy, z)
             with open("cx_interps/totalcx", 'wb') as f:
-                pickle.dump(self.cx_interpolator, f)
+                pickle.dump(self.cx_interpolator, f, protocol=2)
 
         self.total_cx = []
         tcx_fname = f"total_{Path(cx_fname).name}"
@@ -123,7 +123,7 @@ class GPUSim:
                 if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
                     self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
                     with open(it_fname, 'wb') as f:
-                        pickle.dump(self.cx_inverse_dists[e], f)
+                        pickle.dump(self.cx_inverse_dists[e], f, protocol=2)
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
