@@ -55,14 +55,14 @@ class GPUSim:
         self.alpha_path = [] 
         if isfile(alpha_path_fname):
             with open(alpha_path_fname, 'rb') as f:
-                self.alpha_path = pickle.load(f)
+                self.alpha_path = np.load(f, allow_pickle=True)
         else:
             self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
             with open(alpha_path_fname, 'wb') as f:
                 pickle.dump(self.alpha_path, f)
 
         
-        self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
+        #self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
         # can have no lock here since the array is read only
         #alpha_path = mparray(ctypes.c_double, apath_base)
 
@@ -162,9 +162,6 @@ class GPUSim:
         # between the inverse dist values for each KE
         dk = list(self.cx_inverse_dists.keys())
         dk.sort()
-
-        print(dk[0])
-        print(dk[-1])
 
         rsaved = random.uniform(0, 1)
         
