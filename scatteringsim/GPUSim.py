@@ -75,9 +75,16 @@ class GPUSim:
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
         self.cx = self.cx[self.cx['theta'] >= self.theta_min]
         self.cx.reset_index(inplace=True, drop=True)
-        xy = self.cx[['energy', 'theta']].to_numpy()
-        z = self.cx['cx'].to_numpy()
-        self.cx_interpolator = LinearNDInterpolator(xy, z)
+
+        if isfile("cx_interps/totalcx"):
+            with open("cx_interps/totalcx", 'rb') as f:
+                self.cx_interpolator = pickle.load(f)
+        else:
+            xy = self.cx[['energy', 'theta']].to_numpy()
+            z = self.cx['cx'].to_numpy()
+            self.cx_interpolator = LinearNDInterpolator(xy, z)
+            with open("cx_interps/totalcx", 'wb') as f:
+                pickle.dump(self.cx_interpolator, f)
 
         self.total_cx = []
         tcx_fname = f"total_{Path(cx_fname).name}"
