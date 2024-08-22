@@ -150,13 +150,9 @@ class GPUSim:
         return self._result
 
     def gen_inverse_dist(self, ke):
-        print("----------------------------------------------------")
-        x = np.linspace(self.theta_min, self.theta_max, 1000)
+        x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
         y = [self.cx_interpolator((ke, i)) for i in x]
-        print(x)
-        print(y)
         cdf_y = np.cumsum(y)
-        print(cdf_y)
         cdf_y = cdf_y/cdf_y.max()
         inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
         # this is a function
@@ -203,27 +199,6 @@ class GPUSim:
         total_a = sample_dim**2
         #print(eff_a/total_a)
         return (eff_a/total_a)
-
-    """
-    def scattering_angle(self, ke : np.float64) -> np.float64:
-        Samples from the differential cross section to get a scattering angle
-        
-        Args:
-            ke (np.float64): The kinetic energy for the alpha
-
-        Returns:
-            np.float64: The sampled scattering angle
-        
-        while True:
-            # first we sample from a uniform distribution of valid x-values
-            xsample = np.float32(crandom.uniform(self.theta_min, self.theta_max).get())
-            # then find the scaled differential crosssection at the x-sample
-            scx = self.differential_cx(xsample, ke, scaled=True)
-            # and then return the x-sample if a random number is less than that value
-            if crandom.uniform(0., 1) < scx:
-                return cp.float32(xsample.get())
-    """
-        
 
     def differential_cx(self, theta, ke, scaled=False):
         cx_pt = float(self.cx_interpolator((ke, theta)))
