@@ -108,7 +108,8 @@ class GPUSim:
         self.alpha_path_gpu = cp.array(self.alpha_path)
         self.cx_inverse_dists = dict()
         for e in self.cx['energy'].unique():
-            self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
+            if(len(self.cx[self.cx['energ'] == e]['theta']) > 3):
+                self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
@@ -149,9 +150,8 @@ class GPUSim:
         return self._result
 
     def gen_inverse_dist(self, ke):
-        x = self.cx[self.cx['energy'] == ke]['energy'].to_numpy(), 
-        y = self.cx[self.cx['energy'] == ke]['cx'].to_numpy()
-        print(y)
+        x = np.linspace(self.theta_min, self.theta_max, 1000)
+        y = [self.cx_interpolator((ke, i)) for i in x]
         cdf_y = np.cumsum(y)
         cdf_y = cdf_y/cdf_y.max()
         inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
