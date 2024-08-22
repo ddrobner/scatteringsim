@@ -279,6 +279,8 @@ class GPUSim:
         self.fill_spectrum(len(self._quenched_spec))
 
     def detsim(self):
-        means = cp.array([e*self.nhit for e in self._quenched_spec])
-        variances = cp.array([np.sqrt(e*self.nhit)/self.nhit for e in self._quenched_spec])
-        self._result = np.asarray(cp.divide(crandom.normal(loc=means, scale=variances), self.nhit).get())
+        means = np.array([e*self.nhit for e in self._quenched_spec])
+        variances = np.array([np.sqrt(e*self.nhit)/self.nhit for e in self._quenched_spec])
+        #self._result = np.asarray(cp.divide(crandom.normal(loc=means,
+        #scale=variances), self.nhit).get())
+        self._result = np.divide(np.random.normal(loc=means, scale=variances), self.nhit)
