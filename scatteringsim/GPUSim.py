@@ -262,7 +262,7 @@ class GPUSim:
             a_e = transf.e_alpha
             p_e = transf.e_proton
             if np.isnan(p_e):
-                print("Proton Energy is NaN!!!!")
+                print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
             self._proton_sim.append(p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
