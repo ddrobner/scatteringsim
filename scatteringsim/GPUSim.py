@@ -108,7 +108,7 @@ class GPUSim:
         self.alpha_path_gpu = cp.array(self.alpha_path)
         self.cx_inverse_dists = dict()
         for e in self.cx['energy'].unique():
-            if(len(self.cx[self.cx['energ'] == e]['theta']) > 3):
+            if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
                 self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
 
         # and set up class variable to store the outputs
