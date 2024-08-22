@@ -153,7 +153,7 @@ class GPUSim:
         y = self.cx[self.cx['energy'] == ke]['cx'].to_numpy()
         cdf_y = np.cumsum(y)
         cdf_y = cdf_y/cdf_y.max()
-        inverse_cdf = interp1d(cdf_y, x)
+        inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
         # this is a function
         return inverse_cdf
 
