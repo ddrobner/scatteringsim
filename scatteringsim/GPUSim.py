@@ -116,7 +116,7 @@ class GPUSim:
                 if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
                     self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
                     with open(it_fname, 'wb') as f:
-                        pickle.dump(self.cx_inverse_dists[e])
+                        pickle.dump(self.cx_inverse_dists[e], f)
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
