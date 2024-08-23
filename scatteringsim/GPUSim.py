@@ -158,10 +158,10 @@ class GPUSim:
 
     def gen_inverse_dist(self, ke):
         x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
-        y = [self.cx_interpolator((ke, i)) for i in x]
+        y = np.array([self.cx_interpolator((ke, i)) for i in x])
         #cdf_y = np.cumsum(y)
         #cdf_y = cdf_y/cdf_y.max()
-        cdf_y = cdf_y/cdf_y.sum()
+        cdf_y = y/y.sum()
         inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
         # this is a function
         return inverse_cdf
