@@ -17,7 +17,7 @@ dist_points_norm = (dist_points/np.max(dist_points))*np.max(sample_counts)
 fig, ax = plt.subplots()
 
 ax.hist(sample_bins[:-1], sample_bins, weights=sample_counts)
-ax.plot(np.linspace(*s.angles, 1000), dist_points)
+ax.plot(np.linspace(*s.angles, 1000), dist_points_norm)
 ax.set_xlabel("Theta")
 ax.set_ylabel("Dist (arb.)")
 
