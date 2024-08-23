@@ -180,6 +180,7 @@ class GPUSim:
                 for i in range(0, len(prob_vec)-1):
                     if (np.sum(prob_vec[0:i]) < rval) and (np.sum(prob_vec[0:i+1]) > rval):
                         return x_points[i+1]
+                return x_points[0]
         return gen_point
 
 
