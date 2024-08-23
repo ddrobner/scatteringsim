@@ -157,8 +157,10 @@ class GPUSim:
         return self._result
 
     def gen_inverse_dist(self, ke):
-        x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
+        #x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
+        x = np.linspace(self.theta_min, self.theta_max, 10000)
         y = np.array([self.cx_interpolator((ke, i)) for i in x])
+        np.nan_to_num(y, copy=False)
         cdf_y = np.cumsum(y)
         cdf_y = cdf_y/cdf_y.max()
         #cdf_y = y/y.sum()
@@ -194,10 +196,10 @@ class GPUSim:
 
         rsaved = random.uniform(0, 1)
         
-        if ke < dk[0]:
-            return self.cx_inverse_dists[dk[0]](rsaved)
-        elif ke > dk[-1]:
-            return self.cx_inverse_dists[dk[-1]](rsaved)
+        #if ke < dk[0]:
+        #    return self.cx_inverse_dists[dk[0]](rsaved)
+        #elif ke > dk[-1]:
+        #    return self.cx_inverse_dists[dk[-1]](rsaved)
 
         return np.interp(ke, dk, [self.cx_inverse_dists[i](rsaved) for i in dk])
 
