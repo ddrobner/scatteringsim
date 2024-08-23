@@ -175,7 +175,7 @@ class GPUSim:
         prob_vec = y_points/np.sum(y_points)
 
         print(x_points.shape)
-        print(prob_vec.shape())
+        print(prob_vec.shape)
         def gen_point(rval):
             if rval <= prob_vec[0]:
                 return x_points[1] 
