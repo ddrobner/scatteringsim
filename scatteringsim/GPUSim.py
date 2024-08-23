@@ -179,7 +179,7 @@ class GPUSim:
             else:
                 for i in range(0, len(prob_vec)-1):
                     if (np.sum(prob_vec[0:i]) < rval) and (np.sum(prob_vec[0:i+1]) > rval):
-                        return [x_points[i+1]]
+                        return x_points[i+1]
         return gen_point
 
 
@@ -190,7 +190,6 @@ class GPUSim:
         dk.sort()
 
         rsaved = random.uniform(0, 1)
-        print(self.cx_inverse_dists[dk[0]](rsaved))
         
         if ke < dk[0]:
             return self.cx_inverse_dists[dk[0]](rsaved)
