@@ -10,13 +10,14 @@ s = GPUSim(5.3, 10000, 1E-6, 200, "stoppingpowers/lab.csv", "crossections/combin
 
 samp = s.gen_dist_samples(5.3, int(1E6))
 sample_counts, sample_bins = np.histogram(samp, 50)
+sample_counts_norm = np.divide(sample_counts, sample_counts.max())
 
 dist_points = s.get_cx(5.3, 1000)
-dist_points_norm = (dist_points/np.max(dist_points))*np.max(sample_counts)
+dist_points_norm = dist_points/np.max(dist_points)
 
 fig, ax = plt.subplots()
 
-ax.hist(sample_bins[:-1], sample_bins, weights=sample_counts)
+ax.hist(sample_bins[:-1], sample_bins, weights=sample_counts_norm)
 ax.plot(np.linspace(*s.angles, 1000), dist_points_norm)
 ax.set_xlabel("Theta")
 ax.set_ylabel("Dist (arb.)")
