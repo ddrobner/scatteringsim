@@ -173,8 +173,9 @@ class GPUSim:
         # get and normalize the cross section to create a probability vector
         y_points = np.array(self.cx[self.cx['energy'] == ke]['cx'])
         prob_vec = y_points/np.sum(y_points)
-        #prob_vec = np.divide(y_points, np.max(y_points))
-        print(prob_vec)
+
+        print(x_points.shape)
+        print(prob_vec.shape())
         def gen_point(rval):
             if rval <= prob_vec[0]:
                 return x_points[1] 
