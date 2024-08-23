@@ -13,8 +13,9 @@ sample_counts, sample_bins = np.histogram(samp, 50)
 sample_counts_norm = np.divide(sample_counts, sample_counts.max())
 
 dist_points = s.get_cx(5.3, 1000)
-print(dist_points)
-#dist_points_norm = dist_points/np.max(dist_points)
+np.nan_to_num(dist_points, copy=False)
+dist_points_norm = dist_points/np.max(dist_points)
+print(dist_points_norm)
 
 #print(dist_points_norm)
 
