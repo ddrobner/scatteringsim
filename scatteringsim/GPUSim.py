@@ -162,7 +162,8 @@ class GPUSim:
         #cdf_y = np.cumsum(y)
         #cdf_y = cdf_y/cdf_y.max()
         cdf_y = y/y.sum()
-        inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
+        def inverse_cdf(rval):
+            return np.interp(rval, cdf_y, x)[0]
         # this is a function
         return inverse_cdf
     
