@@ -165,6 +165,7 @@ class GPUSim:
         # this is a function
         return inverse_cdf
 
+
     def scattering_angle(self, ke) -> np.float32:
         # this might be a cheat but I think I'm going to just interpolate
         # between the inverse dist values for each KE
@@ -179,6 +180,18 @@ class GPUSim:
             return self.cx_inverse_dists[dk[-1]](rsaved)
 
         return np.interp(ke, dk, [self.cx_inverse_dists[i](rsaved) for i in dk])
+
+    def gen_dist_samples(self, ke, nsamples):
+        samples = [self.scattering_angle(ke) for i in range(nsamples)]
+        return samples
+
+    def get_cx(self, ke, npoints):
+        cx = [self.cx_interpolator((ke, i)) for i in np.linspace(self.theta_min, self.theta_max, npoints)]
+        return cx
+
+    @property
+    def angles(self):
+        return (self.theta_min, self.theta_max)
 
 
     def total_crossection(self, ke : np.float32) -> np.float32:
