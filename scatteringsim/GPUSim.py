@@ -169,13 +169,10 @@ class GPUSim:
     
     def gen_inverse_dist(self, ke):
         # get our points out
-        x_points = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
+        x_points = np.ravel(self.cx[self.cx['energy'] == ke]['theta'].to_numpy())
         # get and normalize the cross section to create a probability vector
         y_points = np.array(self.cx[self.cx['energy'] == ke]['cx'])
-        prob_vec = y_points/np.sum(y_points)
-
-        print(x_points.shape)
-        print(prob_vec.shape)
+        prob_vec = np.ravel(y_points/np.sum(y_points))
         def gen_point(rval):
             if rval <= prob_vec[0]:
                 return x_points[1] 
