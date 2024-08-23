@@ -8,7 +8,7 @@ plt.rcParams['figure.figsize'] = (12, 8)
 s = GPUSim(5.3, 10000, 1E-6, 200, "stoppingpowers/lab.csv", "crossections/combined_new3.csv", proton_factor=0.5)
 
 
-samp = s.gen_dist_samples(5.3, 1E6)
+samp = s.gen_dist_samples(5.3, int(1E6))
 sample_counts, sample_bins = np.histogram(samp, 50)
 
 dist_points = s.get_cx(5.3, 1000)
