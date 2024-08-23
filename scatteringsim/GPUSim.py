@@ -156,17 +156,17 @@ class GPUSim:
     def result(self):
         return self._result
 
-    """
     def gen_inverse_dist(self, ke):
         x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
         y = [self.cx_interpolator((ke, i)) for i in x]
-        cdf_y = np.cumsum(y)
-        cdf_y = cdf_y/cdf_y.max()
+        #cdf_y = np.cumsum(y)
+        #cdf_y = cdf_y/cdf_y.max()
+        cdf_y = cdf_y/cdf_y.sum()
         inverse_cdf = interp1d(cdf_y, x, bounds_error=False, fill_value='extrapolate')
         # this is a function
         return inverse_cdf
-        """
     
+    """
     def gen_inverse_dist(self, ke):
         # get our points out
         x_points = np.ravel(self.cx[self.cx['energy'] == ke]['theta'].to_numpy())
@@ -182,6 +182,7 @@ class GPUSim:
                         return x_points[i+1]
                 return x_points[0]
         return gen_point
+    """
 
 
     def scattering_angle(self, ke) -> np.float32:
