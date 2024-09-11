@@ -296,14 +296,14 @@ class GPUSim:
         # quenching factors
         return alpha_factor*cp.sum(cp.abs(cp.diff(alpha_deps)))
         
-    def fill_spectrum(self, num_scatters):
+    def fill_spectrum(self):
         if self._quenched_spec == None:
             self._quenched_spec = []
         #a_path = np.frombuffer(alpha_path, dtype=np.float64)
         #qv = self.quenched_spectrum(ap)
         qv = self.alpha_factor*np.abs(np.sum(np.diff(self.alpha_path)))
         # fills the spectrum for loaded data 
-        alphas_left = self.num_alphas - num_scatters
+        alphas_left = self.num_alphas - len(self.quenched_spec)
         print(f"Filling {alphas_left} events")
         for i in range(alphas_left):
             self._quenched_spec.append(qv)
@@ -311,7 +311,6 @@ class GPUSim:
     def quenched_spectrum(self):
         if (len(self._proton_sim) != 0) and (len(self._alpha_sim) != 0):
             self._quenched_spec.extend(np.add(np.multiply(self.alpha_factor, self._alpha_sim), np.multiply(self.proton_factor, self._proton_sim)))
-        self.fill_spectrum(len(self._quenched_spec))
 
     def detsim(self):
         self._result = [random.gauss(e_i*self.nhit, np.sqrt(e_i*self.nhit))/self.nhit for e_i in self._quenched_spec]
