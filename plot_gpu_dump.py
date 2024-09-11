@@ -19,7 +19,7 @@ parser.add_argument('-t', '--stoppingpower', default="stoppingpowers/lab.csv")
 parser.add_argument('-c', '--crosssection', default='crossections/combined_new3.csv')
 parser.add_argument('-e', '--energy', type=float, default=8.0)
 parser.add_argument('-q', '--quenching', type=float, default=0.4)
-parser.add_argument('-f', '--fill', type=bool, default=True)
+parser.add_argument('-f', '--fill', type=bool)
 parser.add_argument('-p', '--file-prefix', type=str)
 
 args = parser.parse_args()
