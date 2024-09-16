@@ -168,7 +168,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-localtests/
+local_tests/
 *.pkl
 
 # pytype static type analyzer
