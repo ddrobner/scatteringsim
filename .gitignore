@@ -168,6 +168,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+localtests/
+
 # pytype static type analyzer
 .pytype/
 
