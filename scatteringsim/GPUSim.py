@@ -84,7 +84,7 @@ class GPUSim:
             xy = self.cx[['energy', 'theta']].to_numpy()
             z = self.cx['cx'].to_numpy()
             self.cx_interpolator = LinearNDInterpolator(xy, z)
-            with open("cx_interps/totalcx", 'wb') as f:
+            with open(total_dump_fname, 'wb') as f:
                 pickle.dump(self.cx_interpolator, f, protocol=5)
 
         self.total_cx = []
