@@ -51,7 +51,7 @@ class GPUSim:
         # so it doesn't get copied on pickling
 
         # dump alpha path to disk if it doesn't exist and load it if it does
-        alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p")}"
+        alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p").pkl}"
         self.alpha_path = [] 
         if isfile(alpha_path_fname):
             with open(alpha_path_fname, 'rb') as f:
@@ -76,8 +76,9 @@ class GPUSim:
         self.cx = self.cx[self.cx['theta'] >= self.theta_min]
         self.cx.reset_index(inplace=True, drop=True)
 
-        if isfile("cx_interps/totalcx"):
-            with open("cx_interps/totalcx", 'rb') as f:
+        total_dump_fname = "cx_interps/totalcx.pkl"
+        if isfile(total_dump_fname):
+            with open(total_dump_fname, 'rb') as f:
                 self.cx_interpolator = pickle.load(f)
         else:
             xy = self.cx[['energy', 'theta']].to_numpy()
@@ -87,7 +88,7 @@ class GPUSim:
                 pickle.dump(self.cx_interpolator, f, protocol=5)
 
         self.total_cx = []
-        tcx_fname = f"total_{Path(cx_fname).name}"
+        tcx_fname = f"total_{Path(cx_fname).name}.pkl"
         if isfile(tcx_fname):
             self.total_cx = pd.read_csv(tcx_fname, dtype=np.float32)
         else:

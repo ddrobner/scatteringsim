@@ -169,6 +169,7 @@ dmypy.json
 .pyre/
 
 localtests/
+*.pkl
 
 # pytype static type analyzer
 .pytype/
