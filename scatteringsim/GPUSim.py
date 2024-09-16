@@ -51,7 +51,7 @@ class GPUSim:
         # so it doesn't get copied on pickling
 
         # dump alpha path to disk if it doesn't exist and load it if it does
-        alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p").pkl}"
+        alpha_path_fname = f"alpha_path_{str(e_0).replace(".","p")}.pkl"
         self.alpha_path = [] 
         if isfile(alpha_path_fname):
             with open(alpha_path_fname, 'rb') as f:
