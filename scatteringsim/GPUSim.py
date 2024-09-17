@@ -245,6 +245,11 @@ class GPUSim:
         scatter_alpha, scatter_step = cp.nonzero(output_scatters_gpu)
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
+
+        m_alpha = np.float128(6.646E-27) # kg
+        m_proton = np.float128(1.6726E-27) # kg
+        mev_to_j = 1/6.242E12
+        
         scattered_alphas = []
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
@@ -256,7 +261,11 @@ class GPUSim:
             # and add the current alpha to the list
             scattered_alphas.append(alpha.get())
             # grab the energy for the step which the scatter happened at
-            step_energy = self.alpha_path[step.get()]
+            lab_frame_alpha_e = self.alpha_path[step.get()]
+            palpha_lab = -1*np.sqrt(2*m_alpha*lab_frame_alpha_e*mev_to_j)
+            v_cm = palpha_lab/(m_alpha + m_proton)
+            step_energy = 0.5*m_proton*np.power(v_cm, 2)
+            #step_energy = self.alpha_path[step.get()]
             #self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step.get()])))
             q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
