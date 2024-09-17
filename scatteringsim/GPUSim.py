@@ -39,7 +39,8 @@ class GPUSim:
 
         # leaving these as constants in here since we are unlikely to change them
         self.density = 0.8562 
-        self.mol_wt = 246.43
+        #self.mol_wt = 246.43
+        self.mol_wt = 234 # for lab+ppo 
 
         # this is the lower bound any time anything goes to zero (ie. alpha
         # energy)
