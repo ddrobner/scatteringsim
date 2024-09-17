@@ -39,6 +39,7 @@ class GPUSim:
 
         # leaving these as constants in here since we are unlikely to change them
         self.density = 0.8562 
+        self.proton_scaling_factor = 25 # proton density scale factor
         #self.mol_wt = 246.43
         self.mol_wt = 234 # for lab+ppo 
 
@@ -218,7 +219,7 @@ class GPUSim:
 
         # now let's do the same stuff as before to determine the probability
         rho = self.density # g/cm^3, see above
-        n = Avogadro/(self.mol_wt) * self.stepsize * rho
+        n = Avogadro/(self.mol_wt) * self.stepsize * rho * self.proton_scaling_factor
 
         eff_a = sigma*n
         total_a = sample_dim**2
