@@ -81,14 +81,12 @@ class GPUSim:
 
         # now let's do the inference
         for e in self.cx['energy'].unique():
-            angles = self.cx[self.cx['energy'] == e]['theta'].to_numpy()
-            cxs = self.cx[self.cx['energy'] == e]['cx'].to_numpy()
 
+            angles = self.cx[self.cx['energy'] == e]['theta'].to_numpy()
 
             # do the lower inference here
             theta_0 = angles.min()
             cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)])[0]
-
             k_0 = cx_0 - 1/theta_0
 
             infer_pts_low = np.linspace(self.theta_min, theta_0, 5)[:-1]
