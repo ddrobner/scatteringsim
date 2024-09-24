@@ -190,6 +190,16 @@ class GPUSim:
     def result(self):
         return self._result
 
+    @property
+    def angle_range(self):
+        return (self.theta_min, self.theta_max)
+
+    @property
+    def energy_range(self):
+        e_0 = self.cx['energy'].to_numpy().min()
+        e_m = self.cx['energy'].to_numpy().max()
+        return (e_0, e_m)
+
     def gen_inverse_dist(self, ke):
         #x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
         x = np.linspace(self.theta_min, self.theta_max, 10000)
