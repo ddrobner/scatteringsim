@@ -201,6 +201,10 @@ class GPUSim:
         return (e_0, e_m)
 
     @property
+    def interpolator(self):
+        return self.cx_interpolator
+
+    @property
     def diff_cx(self):
         return self.cx
 
