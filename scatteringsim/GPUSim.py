@@ -34,7 +34,8 @@ class GPUSim:
         self.alpha_factor = 0.1
 
         #picking a min theta so we neglect the small amounts of transferred energy
-        self.theta_min = np.pi/4
+        #self.theta_min = np.pi/4
+        self.theta_min = np.pi/12
         self.theta_max = np.pi
 
         # leaving these as constants in here since we are unlikely to change them
@@ -77,6 +78,38 @@ class GPUSim:
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
         self.cx = self.cx[self.cx['theta'] >= self.theta_min]
         self.cx.reset_index(inplace=True, drop=True)
+
+        # now let's do the inference
+        for e in self.cx['energy'].unique():
+            angles = self.cx[self.cx['energy'] == e]['theta'].to_numpy()
+            cxs = self.cx[self.cx['energy'] == e]['cx'].to_numpy()
+
+
+            # do the lower inference here
+            theta_0 = angles.min()
+            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)])[0]
+
+            k_0 = cx_0 - 1/theta_0
+
+            infer_pts_low = np.linspace(self.theta_min, theta_0, 5)[:-1]
+            for p in infer_pts_low:
+                d = pd.DataFrame([(e, p, 1/p + k_0)], columns=self.cx.columns)
+                self.cx = pd.concat([self.cx, d])
+
+            # and now the upper inference
+            theta_m = angles.max()
+            cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)])[0]
+            km = cx_m - 1/theta_m
+
+            infer_pts_up = np.linspace(theta_m, self.theta_max, 5)[1:]
+            for p in infer_pts_up:
+                d = pd.DataFrame([(e, p, 1/p+km)], columns=self.cx.columns)
+                self.cx = pd.concat([self.cx, d])
+
+        # now we re-sort things and fix the indexing
+        self.cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=True, inplace=True)
+        self.cx.reset_index(inplace=True, drop=True)
+
 
         total_dump_fname = "cx_interps/totalcx.pkl"
         if isfile(total_dump_fname):
