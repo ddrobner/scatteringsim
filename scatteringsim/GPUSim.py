@@ -200,6 +200,10 @@ class GPUSim:
         e_m = self.cx['energy'].to_numpy().max()
         return (e_0, e_m)
 
+    @property
+    def diff_cx(self):
+        return self.cx
+
     def gen_inverse_dist(self, ke):
         #x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
         x = np.linspace(self.theta_min, self.theta_max, 10000)
