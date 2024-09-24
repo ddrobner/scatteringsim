@@ -22,11 +22,10 @@ class GPUSim:
     def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, proton_factor: float = 0.5):
         # declaring this as a global to speed up multprocessing 
         #global alpha_path
-        
+
         # declaring some constants 
         self.stp = read_stopping_power(stp_fname)
         self.e_0 = e_0
-        self.num_alphas = num_alphas
         self.proton_factor = proton_factor
         self.stepsize = stepsize
         self.nhit = nhit
@@ -63,11 +62,6 @@ class GPUSim:
             self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
             with open(alpha_path_fname, 'wb') as f:
                 pickle.dump(self.alpha_path, f, protocol=5)
-
-        
-        #self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
-        # can have no lock here since the array is read only
-        #alpha_path = mparray(ctypes.c_double, apath_base)
 
         # now we handle setting up the cross section
         self.cx = pd.read_csv(cx_fname, dtype=np.float32)
@@ -144,6 +138,7 @@ class GPUSim:
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
+        
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
 
         self.alpha_path_gpu = cp.array(self.alpha_path)
@@ -151,6 +146,17 @@ class GPUSim:
         for e in self.cx['energy'].unique():
             if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
                 self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
+
+        # scale number of alphas based on total GPU mem
+        # we do this after everything else is initalized so we know how much VRAM
+        # is free
+        d_width = 8 # size of floats being used, in bytes
+        if num_alphas == -1:
+            avail_mem = cp.cuda.Device().mem_info[0]
+            n_alphas_max = avail_mem/(self.alpha_steps*d_width)
+            self.num_alphas = int(0.9*n_alphas_max)
+        else:
+            self.num_alphas = num_alphas
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
@@ -209,7 +215,6 @@ class GPUSim:
         return self.cx
 
     def gen_inverse_dist(self, ke):
-        #x = self.cx[self.cx['energy'] == ke]['theta'].to_numpy()
         x = np.linspace(self.theta_min, self.theta_max, 10000)
         y = np.array([self.cx_interpolator((ke, i)) for i in x])
         np.nan_to_num(y, copy=False)
@@ -229,11 +234,6 @@ class GPUSim:
 
         rsaved = random.uniform(0, 1)
         
-        #if ke < dk[0]:
-        #    return self.cx_inverse_dists[dk[0]](rsaved)
-        #elif ke > dk[-1]:
-        #    return self.cx_inverse_dists[dk[-1]](rsaved)
-
         return np.interp(ke, dk, [self.cx_inverse_dists[i](rsaved) for i in dk])
 
     def gen_dist_samples(self, ke, nsamples):
@@ -272,7 +272,6 @@ class GPUSim:
 
         eff_a = sigma*n
         total_a = sample_dim**2
-        #print(eff_a/total_a)
         return (eff_a/total_a)
 
     def differential_cx(self, theta, ke, scaled=False):
@@ -328,10 +327,7 @@ class GPUSim:
                 print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
             self._proton_sim.append(p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
-            #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
             self._alpha_sim.append(np.float32((q_1 + q_2).get()))
-            #self._alpha_sim[-1].extend(gen_alpha_path(a_e, self.stp,
-            #epsilon=self.epsilon, stepsize=self.stepsize))
 
     def alpha_quenched_value(self, alpha_deps, alpha_factor = 1.0):
         # want the factor to be one here - so later we can plot for different
@@ -341,9 +337,9 @@ class GPUSim:
     def fill_spectrum(self):
         if self._quenched_spec == None:
             self._quenched_spec = []
-        #a_path = np.frombuffer(alpha_path, dtype=np.float64)
-        #qv = self.quenched_spectrum(ap)
+
         qv = self.alpha_factor*np.abs(np.sum(np.diff(self.alpha_path)))
+
         # fills the spectrum for loaded data 
         alphas_left = self.num_alphas - len(self.quenched_spec)
         print(f"Filling {alphas_left} events")

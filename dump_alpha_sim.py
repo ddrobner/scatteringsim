@@ -5,7 +5,7 @@ from dataclasses import astuple
 import pickle
 
 parser = argparse.ArgumentParser(prog='AlphaDumperGPU', description='Dumps Alpha Sim results computed on GPU to disk')
-parser.add_argument('-n', '--num_alphas', type=int)
+parser.add_argument('-n', '--num_alphas', type=int, help="Number of alphas to simulate. A value of -1 dynamically scales the size to available VRAM.")
 parser.add_argument('-o', '--output', type=Path)
 parser.add_argument('-s', '--stepsize', type=float, default=1E-6)
 parser.add_argument('-t', '--stoppingpower', default="stoppingpowers/lab.csv")
