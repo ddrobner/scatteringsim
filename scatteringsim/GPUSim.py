@@ -19,7 +19,7 @@ from scipy.constants import Avogadro
 
 
 class GPUSim:
-    def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, total_cx_fname: str = "crossections/endf.csv", proton_factor: float = 0.5):
+    def __init__(self, e_0: float, num_alphas: int, stepsize: float, nhit: int, stp_fname: str, cx_fname: str, proton_factor: float = 0.5):
         # declaring this as a global to speed up multprocessing 
         #global alpha_path
         
