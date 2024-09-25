@@ -80,7 +80,7 @@ class GPUSim:
 
             # do the lower inference here
             theta_0 = angles.min()
-            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)])[0]
+            cx_0 = np.float32(self.cx[(self.cx['energy'] == e)][(self.cx['theta'] == theta_0)])[0]
             k_0 = cx_0 - 1/theta_0
 
             infer_pts_low = np.linspace(self.theta_min, theta_0, 5)[:-1]
@@ -90,7 +90,7 @@ class GPUSim:
 
             # and now the upper inference
             theta_m = angles.max()
-            cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)])[0]
+            cx_m = np.float32(self.cx[(self.cx['energy'] == e)][(self.cx['theta'] == theta_m)])[0]
             km = cx_m - 1/theta_m
 
             infer_pts_up = np.linspace(theta_m, self.theta_max, 5)[1:]
