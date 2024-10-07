@@ -22,14 +22,17 @@ n_bins = 1000
 energy_vals = np.linspace(*s.energy_range, n_bins)
 angle_vals = np.linspace(*s.angle_range, n_bins)
 
-comb_vals = itertools.product(energy_vals, angle_vals)
+comb_vals = []
 
 cx_vals = []
-for c in comb_vals:
-    cx_vals.append(s.interpolator(c))
+for e in energy_vals:
+    for a in angle_vals:
+        cx_vals.append(s.interpolator((e, a)))
+        comb_vals.append((e, a))
 
-h = np.histogram2d([i[0] for i in comb_vals], [i[1] for i in comb_vals], weights=np.array(cx_vals), bins=[n_bins, n_bins])
+cx_vals = np.array(cx_vals)
+np.nan_to_num(cx_vals, copy=False, nan=0.0)
+h = np.histogram2d(np.array([i[0] for i in comb_vals]), np.array([i[1] for i in comb_vals]), weights=cx_vals, bins=[n_bins, n_bins])
 
 with uproot.recreate(sys.argv[2]) as f:
     f['cx'] = h
-    

@@ -91,7 +91,7 @@ class GPUSim:
 
             # and now the upper inference
             theta_m = angles.max()
-            cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)])[0]
+            cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)]['cx'])[0]
             km = cx_m - 1/theta_m
 
             infer_pts_up = np.linspace(theta_m, self.theta_max, 5)[1:]
@@ -104,16 +104,9 @@ class GPUSim:
         self.cx.reset_index(inplace=True, drop=True)
 
 
-        total_dump_fname = "cx_interps/totalcx.pkl"
-        if isfile(total_dump_fname):
-            with open(total_dump_fname, 'rb') as f:
-                self.cx_interpolator = pickle.load(f)
-        else:
-            xy = self.cx[['energy', 'theta']].to_numpy()
-            z = self.cx['cx'].to_numpy()
-            self.cx_interpolator = LinearNDInterpolator(xy, z)
-            with open(total_dump_fname, 'wb') as f:
-                pickle.dump(self.cx_interpolator, f, protocol=5)
+        xy = self.cx[['energy', 'theta']].to_numpy()
+        z = self.cx['cx'].to_numpy()
+        self.cx_interpolator = LinearNDInterpolator(xy, z)
 
         self.total_cx = []
         tcx_fname = f"total_{Path(cx_fname).name}.pkl"
