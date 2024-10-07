@@ -81,7 +81,7 @@ class GPUSim:
 
             # do the lower inference here
             theta_0 = angles.min()
-            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)]['cx']])
+            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)]['cx'])
             print(cx_0)
             k_0 = cx_0 - 1/theta_0
 
