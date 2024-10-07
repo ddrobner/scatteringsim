@@ -81,8 +81,7 @@ class GPUSim:
 
             # do the lower inference here
             theta_0 = angles.min()
-            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)]['cx'])
-            print(cx_0)
+            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)]['cx'])[0]
             k_0 = cx_0 - 1/theta_0
 
             infer_pts_low = np.linspace(self.theta_min, theta_0, 5)[:-1]
