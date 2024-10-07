@@ -14,6 +14,7 @@ from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_tran
 from scatteringsim.structures import ScatterFrame, AlphaEvent
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from os.path import isfile
+from scatteringsim.constants import *
 
 from scipy.constants import Avogadro
 
@@ -80,7 +81,8 @@ class GPUSim:
 
             # do the lower inference here
             theta_0 = angles.min()
-            cx_0 = np.float32(self.cx[(self.cx['energy'] == e)][(self.cx['theta'] == theta_0)])[0]
+            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)]['cx']])
+            print(cx_0)
             k_0 = cx_0 - 1/theta_0
 
             infer_pts_low = np.linspace(self.theta_min, theta_0, 5)[:-1]
@@ -90,7 +92,7 @@ class GPUSim:
 
             # and now the upper inference
             theta_m = angles.max()
-            cx_m = np.float32(self.cx[(self.cx['energy'] == e)][(self.cx['theta'] == theta_m)])[0]
+            cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)])[0]
             km = cx_m - 1/theta_m
 
             infer_pts_up = np.linspace(theta_m, self.theta_max, 5)[1:]
@@ -161,6 +163,7 @@ class GPUSim:
         # and set up class variable to store the outputs
         self._alpha_sim = []
         self._proton_sim = []
+        self._scatter_num = []
         self._quenched_spec = [] 
         self._result = []
 
@@ -296,10 +299,6 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
 
-        m_alpha = np.float128(6.646E-27) # kg
-        m_proton = np.float128(1.6726E-27) # kg
-        mev_to_j = 1/6.242E12
-        
         scattered_alphas = []
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
@@ -315,20 +314,61 @@ class GPUSim:
             palpha_lab = -1*np.sqrt(2*m_alpha*lab_frame_alpha_e*mev_to_j)
             v_cm = palpha_lab/(m_alpha + m_proton)
             step_energy = 0.5*m_proton*np.power(v_cm, 2)
+            e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
             #step_energy = self.alpha_path[step.get()]
             #self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step.get()])))
             q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
-            transf = energy_transfer(step_energy, scatter_angle)
+            transf = energy_transfer(e_alpha, scatter_angle)
             a_e = transf.e_alpha
             p_e = transf.e_proton
             if np.isnan(p_e):
                 print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
-            self._proton_sim.append(p_e)
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             self._alpha_sim.append(np.float32((q_1 + q_2).get()))
 
+            self._proton_sim.append(p_e)
+            self.scatter_num.append(0)
+
+    # check for additional scatters on the CPU - TODO run on GPU
+    # it is a pretty big pain to deal with inhomogenous arrays, so for now we do
+    # this
+    # there are very few scatters rel. to the number of particles - so this
+    # shouldn't be too bad
+    def multiscatter(self, e_i, n_scatter=1):
+         alpha_path = gen_alpha_path(e_i, self.stp, self.epsilon, self.stepsize)
+         for i in range(len(alpha_path)):
+             if self.scattering_probability(alpha_path[i]) > random.uniform(0, 1):
+                palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[i]*mev_to_j)
+                v_cm = palpha_lab/(m_alpha + m_proton)
+                e_p = 0.5*m_proton*np.power(v_cm, 2)
+
+
+                q_1 = self.alpha_quenched_value(cp.array(alpha_path[0:i]))
+                # the alpha spectrum part isn't so important here
+                self._alpha_sim.append(q_1.get())
+                scatter_angle = self.scattering_angle(e_p)
+                transf = energy_transfer(v_cm + palpha_lab/m_alpha, scatter_angle)
+                a_e = transf.e_alpha
+                p_e = transf.e_proton
+
+                if np.isnan(p_e):
+                    print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
+
+                self._proton_sim.append(p_e)
+                self.scatter_num.append(n_scatter)
+                # limit this to three scatters - I think anything more is a
+                # little too much
+                if n_scatter <= 3:
+                    # recursion???
+                    self.multiscatter(a_e, n_scatter+1)
+        # this (regrettably) uses a bit of recursion. It will terminate no
+        # matter what after the third scatter (beyond that is highly unlikely
+        # and the energy will be quite low), as well as if there aren't any
+        # second scatters
+
+            
     def alpha_quenched_value(self, alpha_deps, alpha_factor = 1.0):
         # want the factor to be one here - so later we can plot for different
         # quenching factors
