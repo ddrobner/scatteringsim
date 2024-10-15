@@ -321,7 +321,7 @@ class GPUSim:
             self._alpha_sim.append(np.float32((q_1 + q_2).get()))
 
             self._proton_sim.append(p_e)
-            self.scatter_num.append(0)
+            self._scatter_num.append(0)
 
     # check for additional scatters on the CPU - TODO run on GPU
     # it is a pretty big pain to deal with inhomogenous arrays, so for now we do
