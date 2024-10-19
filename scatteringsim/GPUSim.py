@@ -162,8 +162,6 @@ class GPUSim:
         else:
             self.num_alphas = num_alphas
         
-        print(self.num_alphas)
-
         # and set up class variable to store the outputs
         self._alpha_sim = []
         self._proton_sim = []
