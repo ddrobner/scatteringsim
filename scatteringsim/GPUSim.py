@@ -194,6 +194,7 @@ class GPUSim:
     def pop_particle(self, idx: int) -> None:
         self._alpha_sim.pop(idx)
         self._proton_sim.pop(idx)
+        self._scatter_num.pop(idx)
 
     def add_particle(self, alpha_val, proton_val) -> None:
         self._alpha_sim.append(alpha_val)
