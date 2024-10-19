@@ -10,7 +10,7 @@ from pathlib import Path
 
 import random
 
-from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer
+from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer, find_nearest_idx
 from scatteringsim.structures import ScatterFrame, AlphaEvent
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from os.path import isfile
@@ -305,6 +305,13 @@ class GPUSim:
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
             return
+        else:
+            self.compute_scatter(scatter_alpha, scatter_step)
+
+
+    # TODO combine the single and multi scatter functions into one 
+    def compute_scatter(self, scatter_alpha, scatter_step):
+        scattered_alphas = []
         for alpha, step in zip(scatter_alpha, scatter_step):
             # skip if it's not the first scatter per alpha
             if alpha.get() in scattered_alphas:
@@ -329,17 +336,20 @@ class GPUSim:
                 print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
             q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             self._alpha_sim.append(np.float32((q_1 + q_2).get()))
+            self.multiscatter(a_e)
 
             self._proton_sim.append(p_e)
             self._scatter_num.append(0)
-
     # check for additional scatters on the CPU - TODO run on GPU
     # it is a pretty big pain to deal with inhomogenous arrays, so for now we do
     # this
     # there are very few scatters rel. to the number of particles - so this
     # shouldn't be too bad
     def multiscatter(self, e_i, n_scatter=1):
-         alpha_path = gen_alpha_path(e_i, self.stp, self.epsilon, self.stepsize)
+        # we cheat a little here sacrificing some accuracy - instead of
+        # generating a new alpha path we slice the old one to the nearest index
+        # with the given energy
+         alpha_path = self.alpha_path[find_nearest_idx(self.alpha_path, e_i):]
          for i in range(len(alpha_path)):
              if self.scattering_probability(alpha_path[i]) > random.uniform(0, 1):
                 palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[i]*mev_to_j)
@@ -359,10 +369,11 @@ class GPUSim:
                     print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
 
                 self._proton_sim.append(p_e)
-                self.scatter_num.append(n_scatter)
+                self._scatter_num.append(n_scatter)
                 # limit this to three scatters - I think anything more is a
                 # little too much
-                if n_scatter <= 3:
+                # ignore super low energy scatters
+                if n_scatter <= 3 and len(alpha_path) > 10000:
                     # recursion???
                     self.multiscatter(a_e, n_scatter+1)
         # this (regrettably) uses a bit of recursion. It will terminate no

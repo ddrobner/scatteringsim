@@ -3,6 +3,7 @@ import numpy as np
 import numpy.typing as npt
 
 from pathlib import Path
+from scatteringsim.constants import *
 from scatteringsim.structures import ScatterFrame
 
 def read_stopping_power(filename) -> pd.DataFrame:
@@ -40,4 +41,9 @@ def energy_transfer(e_alpha, scatter_angle):
     ealpha_f = e_alpha*frac_energy + e_alpha
     eproton_f = np.abs(e_alpha*frac_energy)
 
-    return ScatterFrame(np.float32(ealpha_f), np.float32(eproton_f), np.float32(Theta))
+    return ScatterFrame(np.float32(ealpha_f*(1/mev_to_j)), np.float32(eproton_f*(1/mev_to_j)), np.float32(Theta))
+
+def find_nearest_idx(arr, val):
+    arr = np.asarray(arr)
+    idx = (np.abs(arr - val)).argmin()
+    return idx
