@@ -192,7 +192,7 @@ class GPUSim:
         return self._scatter_num
 
     def pop_particle(self, idx: int) -> None:
-        self._alpha_sim.pop(idx)
+        #self._alpha_sim.pop(idx)
         self._proton_sim.pop(idx)
         self._scatter_num.pop(idx)
 
@@ -215,6 +215,13 @@ class GPUSim:
     @property
     def angle_range(self):
         return (self.theta_min, self.theta_max)
+
+    def reset_sim(self):
+        self._alpha_sim.clear()
+        self._proton_sim.clear()
+        self._scatter_num.clear()
+        self._quenched_spec.clear()
+        self._result.clear()
 
     @property
     def energy_range(self):
