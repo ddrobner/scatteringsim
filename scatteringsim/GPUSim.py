@@ -188,6 +188,7 @@ class GPUSim:
     def proton_sim(self):
         return self._proton_sim
 
+    @property
     def scatter_num(self):
         return self._scatter_num
 
