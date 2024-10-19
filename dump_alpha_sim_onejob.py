@@ -33,12 +33,12 @@ if args.num_alphas % args.batchsize != 0:
     sim_alphas = args.num_alphas - (args.num_alphas - batchsize)
 
 num_alphas_run = 0
-s.particle_sim()
 
 # this is a bit weird, but I'm doing this here to free the memory of each alpha
 # as it gets dumped
 run_num = 0
 while num_alphas_run < sim_alphas:
+    s.particle_sim()
     if (len(s.proton_sim) > 0):
         with open(args.output/str(run_num), 'wb') as f:
             # pickle allows you to load incrementally if you write incrementally :)
@@ -49,4 +49,5 @@ while num_alphas_run < sim_alphas:
                 s.pop_particle(0)
     s.reset_sim()
     num_alphas_run += batchsize
+    print(num_alphas_run)
     run_num += 1
