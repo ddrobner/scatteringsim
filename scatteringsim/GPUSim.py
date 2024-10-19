@@ -165,7 +165,7 @@ class GPUSim:
         if num_alphas == -1:
             avail_mem = cp.cuda.Device().mem_info[0]
             n_alphas_max = avail_mem/(self.alpha_steps*d_width)
-            self.num_alphas = int(0.9*n_alphas_max)
+            self.num_alphas = int(0.8*n_alphas_max)
         else:
             self.num_alphas = num_alphas
         
@@ -308,7 +308,7 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
 
-        scattered_alphas = []
+        print(scatter_alpha.shape)
 
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
