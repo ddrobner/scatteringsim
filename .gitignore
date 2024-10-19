@@ -171,6 +171,10 @@ dmypy.json
 local_tests/
 *.pkl
 
+# line profiling
+*.lprof
+profile_output_*.txt
+
 # pytype static type analyzer
 .pytype/
 
