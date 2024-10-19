@@ -62,15 +62,13 @@ class GPUSim:
         # so it doesn't get copied on pickling
 
         # dump alpha path to disk if it doesn't exist and load it if it does
-        alpha_path_fname = f"alpha_path_{str(e_0).replace('.','p')}.pkl"
-        self.alpha_path = [] 
-        if isfile(alpha_path_fname):
-            with open(alpha_path_fname, 'rb') as f:
-                self.alpha_path = np.load(f, allow_pickle=True)
-        else:
-            self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
-            with open(alpha_path_fname, 'wb') as f:
-                pickle.dump(self.alpha_path, f, protocol=5)
+        #alpha_path_fname = f"alpha_path_{str(e_0).replace('.','p')}.pkl"
+        #self.alpha_path = [] 
+        #if isfile(alpha_path_fname):
+        #    with open(alpha_path_fname, 'rb') as f:
+        #        self.alpha_path = np.load(f, allow_pickle=True)
+        #else:
+        self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=self.epsilon, stepsize=self.stepsize)
 
         # now we handle setting up the cross section
         self.cx = pd.read_csv(cx_fname, dtype=np.float32)
@@ -126,26 +124,26 @@ class GPUSim:
         self.cx_interpolator = LinearNDInterpolator(xy, z)
 
         self.total_cx = []
-        tcx_fname = f"total_{Path(cx_fname).name}.pkl"
-        if isfile(tcx_fname):
-            self.total_cx = pd.read_csv(tcx_fname, dtype=np.float32)
-        else:
+        #tcx_fname = f"total_{Path(cx_fname).name}.pkl"
+        #if isfile(tcx_fname):
+        #    self.total_cx = pd.read_csv(tcx_fname, dtype=np.float32)
+        #else:
             # set up a lookup table for the riemann sums
-            temp_es = []
-            temp_cx = []
-            for e in self.cx['energy'].unique():
-                angles = self.cx[self.cx['energy'] == e]['theta']
-                dcx = self.cx[self.cx['energy'] == e]['cx']
-                if len(angles > 3):
-                    itg = np.trapz(dcx, angles)
-                    if(itg != 0):
-                        temp_es.append(e)
-                        temp_cx.append(itg)
-            self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
-            'Total'])
-            del temp_es
-            del temp_cx
-            self.total_cx.to_csv(tcx_fname, index=False)
+        temp_es = []
+        temp_cx = []
+        for e in self.cx['energy'].unique():
+            angles = self.cx[self.cx['energy'] == e]['theta']
+            dcx = self.cx[self.cx['energy'] == e]['cx']
+            if len(angles > 3):
+                itg = np.trapz(dcx, angles)
+                if(itg != 0):
+                    temp_es.append(e)
+                    temp_cx.append(itg)
+        self.total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy',
+        'Total'])
+        del temp_es
+        del temp_cx
+        #self.total_cx.to_csv(tcx_fname, index=False)
 
         # this is only done once so can do it on the cpu
         self.alpha_steps = len(self.alpha_path)
