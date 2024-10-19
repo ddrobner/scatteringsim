@@ -35,6 +35,7 @@ class GPUSim:
 
         #picking a min theta so we neglect the small amounts of transferred energy
         #self.theta_min = np.pi/4
+        self.table_min = np.pi/4
         self.theta_min = np.pi/12
         self.theta_max = np.pi
 
@@ -67,12 +68,18 @@ class GPUSim:
         # now we handle setting up the cross section
         self.cx = pd.read_csv(cx_fname, dtype=np.float32)
 
+        self.cx = self.cx.groupby("energy").filter(lambda x: len(x) > 3)
+
         # converting to radians
         # NOTE this means we need to scale the cx when integrating by 
         # 180/pi due to the transformation
         self.cx['theta'] = np.deg2rad(self.cx['theta'])
-        self.cx = self.cx[self.cx['theta'] >= self.theta_min]
+        self.cx = self.cx[self.cx['theta'] >= self.table_min]
         self.cx.reset_index(inplace=True, drop=True)
+
+        self.cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=[True, True], inplace=True)
+        self.cx.reset_index(drop=True, inplace=True)
+
 
         # now let's do the inference
         for e in self.cx['energy'].unique():
@@ -81,22 +88,25 @@ class GPUSim:
 
             # do the lower inference here
             theta_0 = angles.min()
-            cx_0 = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_0)]['cx'])[0]
+            #cx_0 = np.float32(self.cx[(self.cx['energy'] == e) &
+            #(self.cx['theta'] == theta_0)]['cx'])[0]
+            cx_0 = np.float32(self.cx[self.cx['energy'] == e][self.cx['theta'] == theta_0]['cx'])[0]
             k_0 = cx_0 - 1/theta_0
 
             infer_pts_low = np.linspace(self.theta_min, theta_0, 5)[:-1]
             for p in infer_pts_low:
-                d = pd.DataFrame([(e, p, 1/p + k_0)], columns=self.cx.columns)
+                d = pd.DataFrame([(e, p, (1/p) + k_0)], columns=self.cx.columns)
                 self.cx = pd.concat([self.cx, d])
 
             # and now the upper inference
             theta_m = angles.max()
-            cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)]['cx'])[0]
-            km = cx_m - 1/theta_m
+            #cx_m = np.float32(self.cx[(self.cx['energy'] == e) & (self.cx['theta'] == theta_m)]['cx'])[0]
+            cx_m = np.float32(self.cx[self.cx['energy'] == e][self.cx['theta'] == theta_m]['cx'])[0]
+            km = cx_m - 1/(theta_m)
 
             infer_pts_up = np.linspace(theta_m, self.theta_max, 5)[1:]
             for p in infer_pts_up:
-                d = pd.DataFrame([(e, p, 1/p+km)], columns=self.cx.columns)
+                d = pd.DataFrame([(e, p, (1/p) + km)], columns=self.cx.columns)
                 self.cx = pd.concat([self.cx, d])
 
         # now we re-sort things and fix the indexing
@@ -151,6 +161,7 @@ class GPUSim:
             self.num_alphas = int(0.9*n_alphas_max)
         else:
             self.num_alphas = num_alphas
+        
 
         # and set up class variable to store the outputs
         self._alpha_sim = []
