@@ -1,3 +1,10 @@
+import warnings
+
+import line_profiler
+warnings.simplefilter(action='ignore', category=UserWarning)
+
+import fastrand
+
 import cupy as cp
 import numpy as np
 import pandas as pd
@@ -302,6 +309,7 @@ class GPUSim:
         # the CPU
 
         scattered_alphas = []
+
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
             return
@@ -310,6 +318,7 @@ class GPUSim:
 
 
     # TODO combine the single and multi scatter functions into one 
+    @line_profiler.profile
     def compute_scatter(self, scatter_alpha, scatter_step):
         scattered_alphas = []
         for alpha, step in zip(scatter_alpha, scatter_step):
@@ -326,7 +335,6 @@ class GPUSim:
             e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
             #step_energy = self.alpha_path[step.get()]
             #self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step.get()])))
-            q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
             # compute scattering
             scatter_angle = self.scattering_angle(step_energy)
             transf = energy_transfer(e_alpha, scatter_angle)
@@ -334,8 +342,13 @@ class GPUSim:
             p_e = transf.e_proton
             if np.isnan(p_e):
                 print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
-            q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
-            self._alpha_sim.append(np.float32((q_1 + q_2).get()))
+
+            # Ignoring alpha deposits, since that takes up a LOT of runtime
+            # (60%+) and we are only interested in protons
+            #q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
+            #q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
+            #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
+
             self.multiscatter(a_e)
 
             self._proton_sim.append(p_e)
@@ -345,13 +358,14 @@ class GPUSim:
     # this
     # there are very few scatters rel. to the number of particles - so this
     # shouldn't be too bad
+    @line_profiler.profile
     def multiscatter(self, e_i, n_scatter=1):
         # we cheat a little here sacrificing some accuracy - instead of
         # generating a new alpha path we slice the old one to the nearest index
         # with the given energy
          alpha_path = self.alpha_path[find_nearest_idx(self.alpha_path, e_i):]
          for i in range(len(alpha_path)):
-             if self.scattering_probability(alpha_path[i]) > random.uniform(0, 1):
+             if self.scattering_probability(alpha_path[i]) > fastrand.pcg32bounded(2**32 - 1)/(2**32 - 1):
                 palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[i]*mev_to_j)
                 v_cm = palpha_lab/(m_alpha + m_proton)
                 e_p = 0.5*m_proton*np.power(v_cm, 2)
@@ -376,6 +390,7 @@ class GPUSim:
                 if n_scatter <= 3 and len(alpha_path) > 10000:
                     # recursion???
                     self.multiscatter(a_e, n_scatter+1)
+
         # this (regrettably) uses a bit of recursion. It will terminate no
         # matter what after the third scatter (beyond that is highly unlikely
         # and the energy will be quite low), as well as if there aren't any
