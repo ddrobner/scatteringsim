@@ -188,6 +188,9 @@ class GPUSim:
     def proton_sim(self):
         return self._proton_sim
 
+    def scatter_num(self):
+        return self._scatter_num
+
     def pop_particle(self, idx: int) -> None:
         self._alpha_sim.pop(idx)
         self._proton_sim.pop(idx)
