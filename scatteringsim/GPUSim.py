@@ -166,6 +166,8 @@ class GPUSim:
             self.num_alphas = int(0.8*n_alphas_max)
         else:
             self.num_alphas = num_alphas
+
+        print(f"Simulating {self.num_alphas} alpha particles!")
         
         # and set up class variable to store the outputs
         self._alpha_sim = []
@@ -317,8 +319,6 @@ class GPUSim:
         scatter_alpha, scatter_step = cp.nonzero(output_scatters_gpu)
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
-
-        print(scatter_alpha.shape)
 
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
