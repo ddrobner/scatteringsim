@@ -32,7 +32,7 @@ for i_f in args.input.iterdir():
         while True:
             try:
                 p_data = up.load()
-                s.add_particle(p_data[0], p_data[1])
+                s.add_particle(0.0, p_data[0], p_data[1])
             except EOFError:
                 break
 

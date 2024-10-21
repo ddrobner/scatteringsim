@@ -197,9 +197,10 @@ class GPUSim:
         self._proton_sim.pop(idx)
         self._scatter_num.pop(idx)
 
-    def add_particle(self, alpha_val, proton_val) -> None:
+    def add_particle(self, alpha_val, proton_val, scatter_num=0) -> None:
         self._alpha_sim.append(alpha_val)
         self._proton_sim.append(proton_val)
+        self._scatter_num.append(scatter_num)
 
     @property
     def quenched_spec(self):
