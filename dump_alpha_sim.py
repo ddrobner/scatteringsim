@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 #s = ScatterSim(args.energy, args.num_alphas, args.stepsize, 200,
 #args.stoppingpower, args.crosssection, proton_factor=0.3)
-s = GPUSim(args.energy, args.num_alphas, args.stepsize, 200, args.stoppingpower, args.crosssection, proton_factor=0.3)
+s = GPUSim(args.energy, args.num_alphas, args.stepsize, args.stoppingpower, args.crosssection, proton_factor=0.3)
 s.particle_sim()
 
 # this is a bit weird, but I'm doing this here to free the memory of each alpha

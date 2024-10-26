@@ -18,7 +18,7 @@ import sys
 # <output_filename>.root
 
 # all properties aside from CX are irrelevant here
-s = GPUSim(5.3, -1, 1E-6, 200, "stoppingpowers/lab.csv", sys.argv[1])
+s = GPUSim(5.3, -1, 1E-6, "stoppingpowers/lab.csv", sys.argv[1])
 
 # read cx from the GPUSim obj
 cx = s.diff_cx

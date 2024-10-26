@@ -24,7 +24,7 @@ parser.add_argument('-p', '--file-prefix', type=str)
 
 args = parser.parse_args()
 
-s = GPUSim(args.energy, args.num_alphas, args.stepsize, 200, args.stoppingpower, args.crosssection, proton_factor=args.quenching)
+s = GPUSim(args.energy, args.num_alphas, args.stepsize, args.stoppingpower, args.crosssection, proton_factor=args.quenching)
 
 for i_f in args.input.iterdir():
     with open(i_f, 'rb') as f:
