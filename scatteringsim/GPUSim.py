@@ -1,6 +1,5 @@
 import warnings
 
-import line_profiler
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 import fastrand
@@ -329,7 +328,6 @@ class GPUSim:
 
 
     # TODO combine the single and multi scatter functions into one 
-    @line_profiler.profile
     def compute_scatter(self, scatter_alpha, scatter_step):
         scattered_alphas = []
         for alpha, step in zip(scatter_alpha, scatter_step):
@@ -369,7 +367,6 @@ class GPUSim:
     # this
     # there are very few scatters rel. to the number of particles - so this
     # shouldn't be too bad
-    @line_profiler.profile
     def multiscatter(self, e_i, n_scatter=1):
         # we cheat a little here sacrificing some accuracy - instead of
         # generating a new alpha path we slice the old one to the nearest index
