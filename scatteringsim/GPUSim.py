@@ -261,10 +261,10 @@ class GPUSim:
         
     def quenched_spectrum(self):
         if len(self.particle_results) != 0:
-            alpha_sim = []
+            alpha_sim = np.zeros(len(self.particle_results))
             proton_sim = []
             for d in self.particle_results:
-                alpha_sim.append(d.alpha_energy)
+                #alpha_sim.append(d.alpha_energy)
                 proton_sim.append(d.proton_energy)
             self._quenched_spec.extend(np.add(np.multiply(self.alpha_factor, alpha_sim), np.multiply(self.proton_q_factor, proton_sim)))
 
