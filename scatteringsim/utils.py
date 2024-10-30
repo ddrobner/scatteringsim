@@ -35,13 +35,8 @@ def energy_transfer(e_alpha, scatter_angle):
     frac_energy = (np.power(m_alpha, 2) + 2*m_alpha*m_proton*np.cos(Theta) + np.power(m_proton, 2))/(np.power(m_alpha + m_proton, 2)) - 1
     ealpha_f = e_alpha*frac_energy + e_alpha
     eproton_f = np.abs(e_alpha*frac_energy)
-    #if ealpha_f > 3.0*mev_to_j:
-    #    print("-------------- Alpha Discrepancy ---------------------")
-    #    print(f"Initial Alpha Energy: {e_alpha*j_to_mev}")
-    #    print(f"Theta: {Theta}")
-    #    print(f"Fractional Energy: {frac_energy}")
 
-    return ScatterFrame(np.float32(ealpha_f*j_to_mev), np.float32(eproton_f*j_to_mev), np.float32(Theta))
+    return ScatterFrame(np.float32(ealpha_f), np.float32(eproton_f), np.float32(Theta))
 
 def find_nearest_idx(arr, val):
     arr = np.asarray(arr)

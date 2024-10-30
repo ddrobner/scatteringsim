@@ -230,6 +230,7 @@ class GPUSim:
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
                     scatter_angle = self.scattering_angle(step_energy)
                     transf = energy_transfer(e_alpha, scatter_angle)
+                    print(transf)
 
                     self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
 
