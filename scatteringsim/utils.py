@@ -70,4 +70,4 @@ def transform_energies(alpha_energy_lab: np.float32):
         #print(f"Fractional Energy: {frac_energy}")
     """
 
-    return (step_energy, e_alpha)
+    return (step_energy*j_to_mev, e_alpha*j_to_mev)

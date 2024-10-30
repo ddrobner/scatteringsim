@@ -228,9 +228,6 @@ class GPUSim:
             for s in scatters:
                 if step < s:
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
-                    if step_energy > 5.3 or e_alpha > 5.3:
-                        print(f"Step Energy: {step_energy}")
-                        print(f"Alpha Energy: {e_alpha}")
                     scatter_angle = self.scattering_angle(step_energy)
                     transf = energy_transfer(e_alpha, scatter_angle)
 
