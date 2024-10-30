@@ -41,7 +41,7 @@ def energy_transfer(e_alpha, scatter_angle):
     #    print(f"Theta: {Theta}")
     #    print(f"Fractional Energy: {frac_energy}")
 
-    return ScatterFrame(np.float32(ealpha_f*j_to_mev), np.float32(eproton_f*mev_to_j), np.float32(Theta))
+    return ScatterFrame(np.float32(ealpha_f*j_to_mev), np.float32(eproton_f*j_to_mev), np.float32(Theta))
 
 def find_nearest_idx(arr, val):
     arr = np.asarray(arr)
