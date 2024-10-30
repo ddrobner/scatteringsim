@@ -23,6 +23,8 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
         cross section
     """
 
+    cx = diff_cx
+
     # converting to radians
     # NOTE this means we need to scale the cx when integrating by 
     # 180/pi due to the transformation

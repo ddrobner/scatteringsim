@@ -16,7 +16,7 @@ from dataclasses import astuple
 import random
 
 from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer, find_nearest_idx, transform_energies
-from scatteringsim.sim import sim_init
+import scatteringsim.sim.sim_init as sim_init
 
 from scatteringsim import parameters
 
@@ -43,7 +43,7 @@ class GPUSim:
         self.alpha_path = gen_alpha_path(self.e_0, self.stp, epsilon=parameters.epsilon, stepsize=self.stepsize)
 
         # prepare the cx and unpack it
-        cx_pack = sim_init.prep_cx(pd.read_cxv(cx_fname, dtype=np.float32))
+        cx_pack = sim_init.prep_cx(pd.read_csv(cx_fname, dtype=np.float32))
         self.cx = cx_pack['differential']
         self.total_cx = cx_pack['total']
         del cx_pack
@@ -79,38 +79,24 @@ class GPUSim:
         print(f"Simulating {self.num_alphas} alpha particles!")
         
         # and set up class variable to store the outputs
-        #self._alpha_sim = []
         self._particle_results : list[ScatteredDeposit] = []
-        #self._proton_sim = []
-        #self._scatter_num = []
         self._quenched_spec = [] 
         self._result = []
 
     @property
-    def alpha_sim(self):
-        return self._alpha_sim
+    def particle_results(self):
+        return self._particle_results
 
     @property
     def numalphas(self):
         return self.num_alphas
     
-    @property
-    def proton_sim(self):
-        return self._proton_sim
-
-    @property
-    def scatter_num(self):
-        return self._scatter_num
 
     def pop_particle(self, idx: int) -> None:
-        #self._alpha_sim.pop(idx)
-        self._proton_sim.pop(idx)
-        self._scatter_num.pop(idx)
+        self._particle_results.pop(idx)
 
     def add_particle(self, alpha_val, proton_val, scatter_num=0) -> None:
-        self._alpha_sim.append(alpha_val)
-        self._proton_sim.append(proton_val)
-        self._scatter_num.append(scatter_num)
+        self._particle_results.append(ScatteredDeposit(alpha_val, proton_val, scatter_num))
 
     @property
     def quenched_spec(self):
@@ -223,25 +209,28 @@ class GPUSim:
             return
         #else:
         #    self.compute_scatter(scatter_alpha, scatter_step)
-        for alpha, step in zip(scatter_alpha, scatter_step):
-            for i in range(parameters.max_particle_scatters+1):
-                num_scatter = i
-                step_energy, e_alpha = transform_energies(self.alpha_path[step.get()])
 
-                scatter_angle = self.scattering_angle(step_energy)
-                # turn the dataclass to a tuple to simplify unpacking
-                a_e, p_e, ang = astuple(energy_transfer(e_alpha, scatter_angle))
-                self._particle_results.append(ScatteredDeposit(a_e, p_e, 0))
-                
-                # must add one here due to how python's range() works
-                for i in range(1, parameters.max_particle_scatters+1):
-                    num_scatter = i
-
-                    after_scatter_step = find_nearest_idx(self.alpha_path, a_e)
-                    sliced_rolls = scatter_rolls_gpu[alpha][after_scatter_step:]
-                    second_alpha, second_step = cp.nonzero(sliced_rolls)
-                    for a2, s2 in zip(second_alpha, second_step):
+        # iterate over matrix columns
+        for alpha in output_scatters_gpu[scatter_alpha, :]:
+            print(alpha)
+            # now we walk through the alpha steps and jump forward accordingly
+            # after scatters
+            step = 0
+            scatter_num = 0
+            #print(len(self.alpha_path))
+            while step < len(self.alpha_path):
+                if alpha[step]:
+                    step_energy, e_alpha = transform_energies(self.alpha_path[step])
+                    scatter_angle = self.scattering_angle(step_energy)
+                    transf = energy_transfer(e_alpha, scatter_angle)
                     
+                    self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
+                    scatter_num += 1
+
+                    step = find_nearest_idx(self.alpha_path, transf.e_alpha)
+                    continue
+
+                step += 1
 
     # TODO combine the single and multi scatter functions into one 
     def compute_scatter(self, scatter_alpha, scatter_step):
