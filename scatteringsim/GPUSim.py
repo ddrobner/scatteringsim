@@ -227,10 +227,12 @@ class GPUSim:
 
             for s in scatters:
                 if step < s:
+                    # the scattering angles comes from the proton energy in the CM-frame
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
                     scatter_angle = self.scattering_angle(step_energy)
-                    transf = energy_transfer(e_alpha, scatter_angle)
-                    print(transf)
+
+                    # the energy transfer is done in the lab frame
+                    transf = energy_transfer(self.alpha_path[s], scatter_angle)
 
                     self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
 

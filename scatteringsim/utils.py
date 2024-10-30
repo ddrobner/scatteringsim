@@ -29,7 +29,16 @@ def gen_alpha_path(e_0, stp, epsilon=0.1, stepsize=0.001) -> npt.NDArray[np.floa
         e_i = e_i - stp_interp(e_i, stp)*stepsize
     return np.array(alpha_path)
 
-def energy_transfer(e_alpha, scatter_angle):
+def energy_transfer(e_alpha: float, scatter_angle: float) -> ScatterFrame:
+    """Computes energy transfer from alpha to proton
+
+    Args:
+        e_alpha (float): The alpha energy in lab frame 
+        scatter_angle (float): A scattering angle 
+
+    Returns:
+        ScatterFrame: The energies after scattering 
+    """
     Theta = scatter_angle
 
     frac_energy = (np.power(m_alpha, 2) + 2*m_alpha*m_proton*np.cos(Theta) + np.power(m_proton, 2))/(np.power(m_alpha + m_proton, 2)) - 1
@@ -50,19 +59,9 @@ def transform_energies(alpha_energy_lab: np.float32):
         alpha_energy (np.float32): The alpha energy (initial proton energy
         assumed to be zero) 
     """
-    palpha_lab = -1*np.sqrt(2*m_alpha*alpha_energy_lab*mev_to_j)
-    v_cm = palpha_lab/(m_alpha + m_proton)
+    palpha_lab = np.sqrt(2*m_alpha*alpha_energy_lab*mev_to_j)
+    v_cm = -1*palpha_lab/(m_alpha + m_proton)
     step_energy = 0.5*m_proton*np.power(v_cm, 2)
     e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
-
-    """
-    if e_alpha > 3.0*mev_to_j:
-        print("-------------- Alpha Discrepancy ---------------------")
-        print(f"Inital Alpha Energy: {alpha_energy_lab}")
-        print(f"Transformed Alpha Energy: {e_alpha*j_to_mev}")
-        print(f"Transformed Proton Energy: {step_energy * j_to_mev}")
-        #print(f"Theta: {Theta}")
-        #print(f"Fractional Energy: {frac_energy}")
-    """
 
     return (step_energy*j_to_mev, e_alpha*j_to_mev)
