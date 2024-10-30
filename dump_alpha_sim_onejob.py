@@ -1,7 +1,7 @@
 import argparse
 from scatteringsim import GPUSim 
 from pathlib import Path
-from dataclasses import astuple
+from tqdm import tqdm
 import pickle
 
 parser = argparse.ArgumentParser(prog='AlphaDumperGPU', description='Dumps Alpha Sim results computed on GPU to disk')
@@ -36,6 +36,9 @@ num_alphas_run = 0
 
 # this is a bit weird, but I'm doing this here to free the memory of each alpha
 # as it gets dumped
+
+progress_bar = tqdm(total=sim_alphas)
+
 run_num = 0
 while num_alphas_run < sim_alphas:
     if num_alphas_run + batchsize > sim_alphas:
@@ -51,5 +54,5 @@ while num_alphas_run < sim_alphas:
                 s.pop_particle(0)
     s.reset_sim()
     num_alphas_run += batchsize
-    print(f"Finished {num_alphas_run}")
+    progress_bar.update(batchsize)
     run_num += 1
