@@ -30,11 +30,6 @@ def gen_alpha_path(e_0, stp, epsilon=0.1, stepsize=0.001) -> npt.NDArray[np.floa
     return np.array(alpha_path)
 
 def energy_transfer(e_alpha, scatter_angle):
-    m_alpha = np.float128(6.646E-27) # kg
-    m_proton = np.float128(1.6726E-27) # kg
-
-    e_alpha = np.float128(e_alpha)
-
     Theta = scatter_angle
 
     frac_energy = (np.power(m_alpha, 2) + 2*m_alpha*m_proton*np.cos(Theta) + np.power(m_proton, 2))/(np.power(m_alpha + m_proton, 2)) - 1
@@ -47,3 +42,17 @@ def find_nearest_idx(arr, val):
     arr = np.asarray(arr)
     idx = (np.abs(arr - val)).argmin()
     return idx
+
+def transform_energies(alpha_energy: np.float32):
+    """Changes from lab frame to CM-frame
+
+    Args:
+        alpha_energy (np.float32): The alpha energy (initial proton energy
+        assumed to be zero) 
+    """
+    palpha_lab = -1*np.sqrt(2*m_alpha*alpha_energy*mev_to_j)
+    v_cm = palpha_lab/(m_alpha + m_proton)
+    step_energy = 0.5*m_proton*np.power(v_cm, 2)
+    e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
+
+    return (step_energy, e_alpha)

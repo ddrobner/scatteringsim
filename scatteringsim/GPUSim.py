@@ -11,13 +11,16 @@ import pandas as pd
 import cupy.random as crandom
 
 from pathlib import Path
+from dataclasses import astuple
 
 import random
 
-from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer, find_nearest_idx
+from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer, find_nearest_idx, transform_energies
 from scatteringsim.sim import sim_init
 
 from scatteringsim import parameters
+
+from scatteringsim.structures import ScatteredDeposit
 
 
 from scipy.constants import Avogadro
@@ -76,9 +79,10 @@ class GPUSim:
         print(f"Simulating {self.num_alphas} alpha particles!")
         
         # and set up class variable to store the outputs
-        self._alpha_sim = []
-        self._proton_sim = []
-        self._scatter_num = []
+        #self._alpha_sim = []
+        self._particle_results : list[ScatteredDeposit] = []
+        #self._proton_sim = []
+        #self._scatter_num = []
         self._quenched_spec = [] 
         self._result = []
 
@@ -217,9 +221,27 @@ class GPUSim:
         print("Done GPU Particle Sim Step")
         if not (scatter_alpha.any() or scatter_step.any()):
             return
-        else:
-            self.compute_scatter(scatter_alpha, scatter_step)
+        #else:
+        #    self.compute_scatter(scatter_alpha, scatter_step)
+        for alpha, step in zip(scatter_alpha, scatter_step):
+            for i in range(parameters.max_particle_scatters+1):
+                num_scatter = i
+                step_energy, e_alpha = transform_energies(self.alpha_path[step.get()])
 
+                scatter_angle = self.scattering_angle(step_energy)
+                # turn the dataclass to a tuple to simplify unpacking
+                a_e, p_e, ang = astuple(energy_transfer(e_alpha, scatter_angle))
+                self._particle_results.append(ScatteredDeposit(a_e, p_e, 0))
+                
+                # must add one here due to how python's range() works
+                for i in range(1, parameters.max_particle_scatters+1):
+                    num_scatter = i
+
+                    after_scatter_step = find_nearest_idx(self.alpha_path, a_e)
+                    sliced_rolls = scatter_rolls_gpu[alpha][after_scatter_step:]
+                    second_alpha, second_step = cp.nonzero(sliced_rolls)
+                    for a2, s2 in zip(second_alpha, second_step):
+                    
 
     # TODO combine the single and multi scatter functions into one 
     def compute_scatter(self, scatter_alpha, scatter_step):
@@ -252,10 +274,11 @@ class GPUSim:
             #q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
             #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
 
-            self.multiscatter(a_e)
+            #self.multiscatter(a_e)
 
-            self._proton_sim.append(p_e)
-            self._scatter_num.append(0)
+            self._particle_results.append(ScatteredDeposit(a_e, p_e, 0))
+            #self._proton_sim.append(p_e)
+            #self._scatter_num.append(0)
     # check for additional scatters on the CPU - TODO run on GPU
     # it is a pretty big pain to deal with inhomogenous arrays, so for now we do
     # this

@@ -11,3 +11,4 @@ theta_max = pi
 epsilon = 0.1
 
 nhit = 200
+max_particle_scatters = 3

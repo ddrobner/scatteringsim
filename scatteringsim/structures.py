@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from numpy import float32
 
 @dataclass
 class ScatterFrame:
@@ -19,3 +20,9 @@ class TrackedScatter(float):
 
     def __new__(cls, val):
         return float.__new__(cls, float(val))
+
+@dataclass
+class ScatteredDeposit:
+    alpha_energy: float32
+    proton_energy: float32
+    scatter_numnber: int
