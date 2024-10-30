@@ -34,6 +34,7 @@ for i_f in args.input.iterdir():
         while True:
             try:
                 p_data = up.load()
+                print(p_data)
                 s.add_deposit(p_data)
             except EOFError:
                 break

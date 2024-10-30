@@ -205,7 +205,7 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
 
-        print("Done GPU Particle Sim Step")
+        #print("Done GPU Particle Sim Step")
         #if not (scatter_alpha.any() or scatter_step.any()):
         #    return
 
@@ -216,148 +216,28 @@ class GPUSim:
 
         # now we do the computation
         for alpha in scatter_points.keys():
+
             scatters = scatter_points[alpha]
-
-            # set this to "infinity" to always get the first scatter
-            prev_scatter = float('inf')
-
             scatter_num = 0
             step = scatters[0]
+
             for s in scatters:
-                if step < prev_scatter:
+                if step < s:
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
                     scatter_angle = self.scattering_angle(step_energy)
                     transf = energy_transfer(e_alpha, scatter_angle)
 
-                    self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
+                    self._particle_results.append(ScatteredDeposit(self.e_0 - transf.e_alpha, transf.e_proton, scatter_num))
 
                     step = find_nearest_idx(self.alpha_path, transf.e_alpha)
 
                     continue
-                step = s
+                else:
+                    step = s
+
                 scatter_num += 1
-
-        """
-        prev_scatter_alpha = 0
-        prev_scatter_step = {k:0 for k in scatter_alpha}
-        scatter_nums = {k:0 for k in scatter_alpha}
-        for alpha, step in zip(scatter_alpha, scatter_step):
-
-            if (alpha == prev_scatter_alpha and step > prev_scatter_step) or alpha != prev_scatter_alpha:
-                step_energy, e_alpha = transform_energies(self.alpha_path[step])
-                scatter_angle = self.scattering_angle(step_energy)
-                transf = energy_transfer(e_alpha, scatter_angle)
-
-                self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_nums[scatter_alpha]))
-
-                # now we need to do the step updating
                 
-                scatter_nums[alpha] += 1
-        """
 
-        """
-        # iterate over matrix columns
-        for alpha in output_scatters_gpu[scatter_alpha, :]:
-            print(alpha)
-            # now we walk through the alpha steps and jump forward accordingly
-            # after scatters
-            step = 0
-            scatter_num = 0
-            #print(len(self.alpha_path))
-            while step < len(self.alpha_path):
-                if alpha[step]:
-                    step_energy, e_alpha = transform_energies(self.alpha_path[step])
-                    scatter_angle = self.scattering_angle(step_energy)
-                    transf = energy_transfer(e_alpha, scatter_angle)
-                    
-                    self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
-                    scatter_num += 1
-
-                    step = find_nearest_idx(self.alpha_path, transf.e_alpha)
-                    continue
-
-                step += 1
-        """
-
-    # TODO combine the single and multi scatter functions into one 
-    def compute_scatter(self, scatter_alpha, scatter_step):
-        scattered_alphas = []
-        for alpha, step in zip(scatter_alpha, scatter_step):
-            # skip if it's not the first scatter per alpha
-            if alpha.get() in scattered_alphas:
-                continue
-            # and add the current alpha to the list
-            scattered_alphas.append(alpha.get())
-            # grab the energy for the step which the scatter happened at
-            lab_frame_alpha_e = self.alpha_path[step.get()]
-            palpha_lab = -1*np.sqrt(2*m_alpha*lab_frame_alpha_e*mev_to_j)
-            v_cm = palpha_lab/(m_alpha + m_proton)
-            step_energy = 0.5*m_proton*np.power(v_cm, 2)
-            e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
-            #step_energy = self.alpha_path[step.get()]
-            #self._alpha_sim.extend(np.abs(np.diff(self.alpha_path[0:step.get()])))
-            # compute scattering
-            scatter_angle = self.scattering_angle(step_energy)
-            transf = energy_transfer(e_alpha, scatter_angle)
-            a_e = transf.e_alpha
-            p_e = transf.e_proton
-            if np.isnan(p_e):
-                print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
-
-            # Ignoring alpha deposits, since that takes up a LOT of runtime
-            # (60%+) and we are only interested in protons
-            #q_1 = self.alpha_quenched_value(self.alpha_path_gpu[:step])
-            #q_2 = self.alpha_quenched_value(cp.array(gen_alpha_path(a_e, self.stp, self.epsilon, self.stepsize)))
-            #self._alpha_sim.append(np.float32((q_1 + q_2).get()))
-
-            #self.multiscatter(a_e)
-
-            self._particle_results.append(ScatteredDeposit(a_e, p_e, 0))
-            #self._proton_sim.append(p_e)
-            #self._scatter_num.append(0)
-    # check for additional scatters on the CPU - TODO run on GPU
-    # it is a pretty big pain to deal with inhomogenous arrays, so for now we do
-    # this
-    # there are very few scatters rel. to the number of particles - so this
-    # shouldn't be too bad
-    def multiscatter(self, e_i, n_scatter=1):
-        # we cheat a little here sacrificing some accuracy - instead of
-        # generating a new alpha path we slice the old one to the nearest index
-        # with the given energy
-         alpha_path = self.alpha_path[find_nearest_idx(self.alpha_path, e_i):]
-         for i in range(len(alpha_path)):
-             if self.scattering_probability(alpha_path[i]) > fastrand.pcg32bounded(2**32 - 1)/(2**32 - 1):
-                palpha_lab = -1*np.sqrt(2*m_alpha*alpha_path[i]*mev_to_j)
-                v_cm = palpha_lab/(m_alpha + m_proton)
-                e_p = 0.5*m_proton*np.power(v_cm, 2)
-
-
-                q_1 = self.alpha_quenched_value(cp.array(alpha_path[0:i]))
-                # the alpha spectrum part isn't so important here
-                self._alpha_sim.append(q_1.get())
-                scatter_angle = self.scattering_angle(e_p)
-                transf = energy_transfer(v_cm + palpha_lab/m_alpha, scatter_angle)
-                a_e = transf.e_alpha
-                p_e = transf.e_proton
-
-                if np.isnan(p_e):
-                    print(f"Proton Energy is NaN! Scattering Angle is: {scatter_angle}")
-
-                self._proton_sim.append(p_e)
-                self._scatter_num.append(n_scatter)
-                # limit this to three scatters - I think anything more is a
-                # little too much
-                # ignore super low energy scatters
-                if n_scatter <= 3 and len(alpha_path) > 10000:
-                    # recursion???
-                    self.multiscatter(a_e, n_scatter+1)
-
-        # this (regrettably) uses a bit of recursion. It will terminate no
-        # matter what after the third scatter (beyond that is highly unlikely
-        # and the energy will be quite low), as well as if there aren't any
-        # second scatters
-
-            
     def alpha_quenched_value(self, alpha_deps, alpha_factor = 1.0):
         # want the factor to be one here - so later we can plot for different
         # quenching factors

@@ -49,5 +49,5 @@ while num_alphas_run < sim_alphas:
                 s.pop_particle(0)
     s.reset_sim()
     num_alphas_run += batchsize
-    print(num_alphas_run)
+    print(f"Finished {num_alphas_run}")
     run_num += 1
