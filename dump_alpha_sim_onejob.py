@@ -56,3 +56,5 @@ while num_alphas_run < sim_alphas:
     num_alphas_run += batchsize
     progress_bar.update(batchsize)
     run_num += 1
+
+progress_bar.close()

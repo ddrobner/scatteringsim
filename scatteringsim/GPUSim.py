@@ -76,7 +76,7 @@ class GPUSim:
         else:
             self.num_alphas = num_alphas
 
-        print(f"Simulating {self.num_alphas} alpha particles!")
+        #print(f"Simulating {self.num_alphas} alpha particles!")
         
         # and set up class variable to store the outputs
         self._particle_results : list[ScatteredDeposit] = []
