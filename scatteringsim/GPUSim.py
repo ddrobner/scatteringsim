@@ -235,11 +235,11 @@ class GPUSim:
 
                     step = find_nearest_idx(self.alpha_path, transf.e_alpha)
 
-                    continue
-                else:
-                    step = s
+                    scatter_num += 1
 
-                scatter_num += 1
+                    continue
+                #step = s
+
                 
 
     def alpha_quenched_value(self, alpha_deps, alpha_factor = 1.0):
