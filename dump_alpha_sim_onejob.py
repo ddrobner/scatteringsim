@@ -39,13 +39,13 @@ num_alphas_run = 0
 run_num = 0
 while num_alphas_run < sim_alphas:
     s.particle_sim()
-    if (len(s.proton_sim) > 0):
+    if (len(s.particle_results) > 0):
         with open(args.output/str(run_num), 'wb') as f:
             # pickle allows you to load incrementally if you write incrementally :)
             # so I can write one alpha at a time to the file, and load it as such in the future
             pickler = pickle.Pickler(f)
-            while len(s.proton_sim) > 0:
-                pickler.dump((s.proton_sim[0], s.scatter_num[0]))
+            while len(s.particle_results) > 0:
+                pickler.dump(s.particle_results[0])
                 s.pop_particle(0)
     s.reset_sim()
     num_alphas_run += batchsize

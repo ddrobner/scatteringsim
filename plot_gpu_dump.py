@@ -5,6 +5,8 @@ from math import floor, log
 
 import matplotlib.pyplot as plt
 
+from scatteringsim.structures import ScatteredDeposit
+
 import argparse
 import pickle
 
@@ -32,7 +34,7 @@ for i_f in args.input.iterdir():
         while True:
             try:
                 p_data = up.load()
-                s.add_particle(0.0, p_data[0], p_data[1])
+                s.add_deposit(p_data)
             except EOFError:
                 break
 

@@ -98,6 +98,9 @@ class GPUSim:
     def add_particle(self, alpha_val, proton_val, scatter_num=0) -> None:
         self._particle_results.append(ScatteredDeposit(alpha_val, proton_val, scatter_num))
 
+    def add_deposit(self, deposit: ScatteredDeposit) -> None:
+        self._particle_results.append(deposit)
+
     @property
     def quenched_spec(self):
         return self._quenched_spec
@@ -115,9 +118,7 @@ class GPUSim:
         return (parameters.theta_min, parameters.theta_max)
 
     def reset_sim(self):
-        self._alpha_sim.clear()
-        self._proton_sim.clear()
-        self._scatter_num.clear()
+        self._particle_results.clear()
         self._quenched_spec.clear()
         self._result.clear()
 
@@ -205,11 +206,56 @@ class GPUSim:
         # the CPU
 
         print("Done GPU Particle Sim Step")
-        if not (scatter_alpha.any() or scatter_step.any()):
-            return
-        #else:
-        #    self.compute_scatter(scatter_alpha, scatter_step)
+        #if not (scatter_alpha.any() or scatter_step.any()):
+        #    return
 
+        # group up the scatter indices
+        scatter_points = {int(a.get()):list() for a in scatter_alpha}
+        for a, idx in zip(scatter_alpha, scatter_step):
+            scatter_points[int(a.get())].append(int(idx.get()))
+
+        # now we do the computation
+        for alpha in scatter_points.keys():
+            scatters = scatter_points[alpha]
+
+            # set this to "infinity" to always get the first scatter
+            prev_scatter = float('inf')
+
+            scatter_num = 0
+            step = scatters[0]
+            for s in scatters:
+                if step < prev_scatter:
+                    step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
+                    scatter_angle = self.scattering_angle(step_energy)
+                    transf = energy_transfer(e_alpha, scatter_angle)
+
+                    self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
+
+                    step = find_nearest_idx(self.alpha_path, transf.e_alpha)
+
+                    continue
+                step = s
+                scatter_num += 1
+
+        """
+        prev_scatter_alpha = 0
+        prev_scatter_step = {k:0 for k in scatter_alpha}
+        scatter_nums = {k:0 for k in scatter_alpha}
+        for alpha, step in zip(scatter_alpha, scatter_step):
+
+            if (alpha == prev_scatter_alpha and step > prev_scatter_step) or alpha != prev_scatter_alpha:
+                step_energy, e_alpha = transform_energies(self.alpha_path[step])
+                scatter_angle = self.scattering_angle(step_energy)
+                transf = energy_transfer(e_alpha, scatter_angle)
+
+                self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_nums[scatter_alpha]))
+
+                # now we need to do the step updating
+                
+                scatter_nums[alpha] += 1
+        """
+
+        """
         # iterate over matrix columns
         for alpha in output_scatters_gpu[scatter_alpha, :]:
             print(alpha)
@@ -231,6 +277,7 @@ class GPUSim:
                     continue
 
                 step += 1
+        """
 
     # TODO combine the single and multi scatter functions into one 
     def compute_scatter(self, scatter_alpha, scatter_step):
@@ -326,8 +373,13 @@ class GPUSim:
             self._quenched_spec.append(qv)
         
     def quenched_spectrum(self):
-        if (len(self._proton_sim) != 0) and (len(self._alpha_sim) != 0):
-            self._quenched_spec.extend(np.add(np.multiply(self.alpha_factor, self._alpha_sim), np.multiply(self.proton_q_factor, self._proton_sim)))
+        if len(self.particle_results) != 0:
+            alpha_sim = []
+            proton_sim = []
+            for d in self.particle_results:
+                alpha_sim.append(d.alpha_energy)
+                proton_sim.append(d.proton_energy)
+            self._quenched_spec.extend(np.add(np.multiply(self.alpha_factor, alpha_sim), np.multiply(self.proton_q_factor, proton_sim)))
 
     def detsim(self):
         self._result = [random.gauss(e_i*parameters.nhit, np.sqrt(e_i*parameters.nhit))/parameters.nhit for e_i in self._quenched_spec]
