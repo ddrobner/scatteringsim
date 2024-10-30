@@ -28,9 +28,9 @@ if batchsize == -1:
 
 sim_alphas = args.num_alphas
 
-if args.num_alphas % args.batchsize != 0:
-    print("WARNING: Rounding number of alphas to closest number that the batchsize divides")
-    sim_alphas = args.num_alphas - (args.num_alphas - batchsize)
+#if args.num_alphas % args.batchsize != 0:
+#    print("WARNING: Rounding number of alphas to closest number that the batchsize divides")
+#    sim_alphas = args.num_alphas - (args.num_alphas - batchsize)
 
 num_alphas_run = 0
 
@@ -38,6 +38,8 @@ num_alphas_run = 0
 # as it gets dumped
 run_num = 0
 while num_alphas_run < sim_alphas:
+    if num_alphas_run + batchsize > sim_alphas:
+        s.numalphas = sim_alphas - num_alphas_run
     s.particle_sim()
     if (len(s.particle_results) > 0):
         with open(args.output/str(run_num), 'wb') as f:

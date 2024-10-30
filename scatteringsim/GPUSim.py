@@ -90,6 +90,10 @@ class GPUSim:
     @property
     def numalphas(self):
         return self.num_alphas
+
+    @numalphas.setter
+    def numalphas(self, val):
+        self.num_alphas = val
     
 
     def pop_particle(self, idx: int) -> None:
@@ -227,7 +231,7 @@ class GPUSim:
                     scatter_angle = self.scattering_angle(step_energy)
                     transf = energy_transfer(e_alpha, scatter_angle)
 
-                    self._particle_results.append(ScatteredDeposit(self.e_0 - transf.e_alpha, transf.e_proton, scatter_num))
+                    self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
 
                     step = find_nearest_idx(self.alpha_path, transf.e_alpha)
 

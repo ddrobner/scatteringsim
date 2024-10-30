@@ -25,4 +25,4 @@ class TrackedScatter(float):
 class ScatteredDeposit:
     alpha_energy: float32
     proton_energy: float32
-    scatter_numnber: int
+    scatter_number: int
