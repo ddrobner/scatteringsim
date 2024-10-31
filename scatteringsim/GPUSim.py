@@ -220,12 +220,16 @@ class GPUSim:
 
         # now we do the computation
         for alpha in scatter_points.keys():
-
+            # get the indices of the scatters for the current alpha
             scatters = scatter_points[alpha]
-            scatter_num = 0
-            step = scatters[0]
 
+            # initialize the variables
+            scatter_num = 0
+            # always get the first scatter
+            step = 0
+            # now iterare through the scattered indices
             for s in scatters:
+                # check if we've jumped ahead of the scatter index
                 if step < s:
                     # the scattering angles comes from the proton energy in the CM-frame
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
@@ -234,14 +238,14 @@ class GPUSim:
                     # the energy transfer is done in the lab frame
                     transf = energy_transfer(self.alpha_path[s], scatter_angle)
 
+                    # record the scatter energy information
                     self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
 
+                    # and now jump ahead in the alpha path 
                     step = find_nearest_idx(self.alpha_path, transf.e_alpha)
 
+                    # and incremement the scatter number for later tracking
                     scatter_num += 1
-
-                    continue
-                #step = s
 
                 
 
