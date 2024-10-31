@@ -14,21 +14,21 @@ plt.rcParams['figure.figsize'] = (12, 8)
 
 parser = argparse.ArgumentParser(prog='SplitFilePlot', description='Finalizes analysis of split simulation')
 
-parser.add_argument('-n', '--num_alphas', type=int)
 parser.add_argument('-i', '--input', type=Path)
-parser.add_argument('-s', '--stepsize', type=float, default=1E-6)
-parser.add_argument('-t', '--stoppingpower', default="stoppingpowers/lab.csv")
-parser.add_argument('-c', '--crosssection', default='crossections/combined_new3.csv')
-parser.add_argument('-e', '--energy', type=float, default=8.0)
 parser.add_argument('-q', '--quenching', type=float, default=0.4)
 parser.add_argument('-f', '--fill', action=argparse.BooleanOptionalAction)
 parser.add_argument('-p', '--file-prefix', type=str)
 
 args = parser.parse_args()
 
-s = GPUSim(args.energy, args.num_alphas, args.stepsize, args.stoppingpower, args.crosssection, proton_factor=args.quenching)
+with open(args.input/"run_info", 'rb') as f:
+    run_info : dict = pickle.load(f) 
+
+s = GPUSim(run_info['energy'], run_info['num_alphas'], run_info['stepsize'], run_info['stoppingpower'], run_info['cross_section'], proton_factor=args.quenching)
 
 for i_f in args.input.iterdir():
+    if i_f.name == "run_info":
+        continue
     with open(i_f, 'rb') as f:
         up = pickle.Unpickler(f)
         while True:
@@ -57,7 +57,7 @@ plt.yscale('log')
 plt.xticks([round(i, 2) for i in bins])
 plt.xticks(rotation=60)
 plt.ticklabel_format(style='plain', axis='x')
-ax.set_title(f"{human_format(int(s.numalphas))} {args.energy}MeV Alphas  Spectrum (Quenching Factor {args.quenching}) {'(Scatters Only)' if not args.fill else ''}")
+ax.set_title(f"{human_format(int(s.numalphas))} {run_info['energy']}MeV Alphas  Spectrum (Quenching Factor {args.quenching}) {'(Scatters Only)' if not args.fill else ''}")
 ax.set_xlabel("Energy (MeV)")
 ax.set_ylabel("Count")
 fig.tight_layout()

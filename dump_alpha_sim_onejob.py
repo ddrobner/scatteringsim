@@ -4,6 +4,8 @@ from pathlib import Path
 from tqdm import tqdm
 import pickle
 
+from time import time as current_timestamp
+
 parser = argparse.ArgumentParser(prog='AlphaDumperGPU', description='Dumps Alpha Sim results computed on GPU to disk')
 parser.add_argument('-n', '--num_alphas', type=int, help="Number of alphas to simulate. A value of -1 dynamically scales the size to available VRAM.")
 parser.add_argument('-b', '--batchsize', type=int, help="Number of alphas to run at once")
@@ -20,6 +22,10 @@ args = parser.parse_args()
 s = GPUSim(args.energy, args.batchsize, args.stepsize, args.stoppingpower, args.crosssection, proton_factor=0.3)
 
 
+# dump sim parameters to a metadata file
+run_info = {"num_alphas": args.num_alphas, "stepsize": args.stepsize, "stoppingpower": args.stoppingpower, "cross_section": args.crosssection, "energy": args.energy, "timestamp": current_timestamp()}
+with open(args.output/"run_info", 'wb') as f:
+   pickle.dump(run_info, f) 
 
 # if batchsize is -1 get number of alphas from gpusim
 batchsize = args.batchsize
