@@ -50,7 +50,7 @@ def human_format(number):
     return '{}{}'.format(int(number / k**magnitude), units[magnitude])
 
 print(f"Result len: {len(s.result)}")
-counts, bins = histogram(s.result, 30)
+counts, bins = histogram(s.result, 30, range=(0,max(s.result)))
 fig, ax = plt.subplots()
 ax.hist(bins[:-1], bins, weights=counts, rwidth=0.8)
 plt.yscale('log')
