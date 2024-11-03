@@ -1,4 +1,5 @@
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, interp1d
+from copy import deepcopy
 
 import pandas as pd
 import numpy as np
@@ -64,10 +65,30 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
             d = pd.DataFrame([(e, p, (1/p) + km)], columns=cx.columns)
             cx = pd.concat([cx, d])
 
-
     # now we re-sort things and fix the indexing
     cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=True, inplace=True)
     cx.reset_index(inplace=True, drop=True)
+
+
+    # bad to hardcode this but to be honest not worth the hassle to do it
+    # properly here
+
+    try:
+        endf_cx = pd.read_csv("crossections/endf.csv")
+        # set up an interpolator
+        endf_interp = interp1d(endf_cx['energy'], endf_cx['cx'], fill_value='extrapolate')
+        min_e = cx['energy'].unique().min()
+        cx_high = endf_interp(min_e)
+        cx_e_range = np.linspace(0.1, min_e, 10)
+        for e in cx_e_range:
+            scale = endf_interp(e)/cx_high
+            scaled_cx_vals = deepcopy(cx[cx['energy'] == min_e])
+            scaled_cx_vals['cx'] = scaled_cx_vals['cx']*scale
+            cx = pd.concat([cx, scaled_cx_vals])
+        cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=True, inplace=True)
+        cx.reset_index(inplace=True, drop=True)
+    except Exception as e:
+        print(e) 
 
     temp_es = []
     temp_cx = []
