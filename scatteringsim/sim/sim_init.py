@@ -37,6 +37,7 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
     cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=[True, True], inplace=True)
     cx.reset_index(drop=True, inplace=True)
 
+    """
     # now let's do the inference
     for e in cx['energy'].unique():
 
@@ -68,11 +69,12 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
     # now we re-sort things and fix the indexing
     cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=True, inplace=True)
     cx.reset_index(inplace=True, drop=True)
-
+    """
 
     # bad to hardcode this but to be honest not worth the hassle to do it
     # properly here
 
+    """
     try:
         endf_cx = pd.read_csv("crossections/endf.csv")
         # set up an interpolator
@@ -89,6 +91,7 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
         cx.reset_index(inplace=True, drop=True)
     except Exception as e:
         print(e) 
+    """
 
     temp_es = []
     temp_cx = []
