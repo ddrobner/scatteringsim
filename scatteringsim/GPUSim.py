@@ -99,8 +99,8 @@ class GPUSim:
     def pop_particle(self, idx: int) -> None:
         self._particle_results.pop(idx)
 
-    def add_particle(self, alpha_val, proton_val, scatter_num=0) -> None:
-        self._particle_results.append(ScatteredDeposit(alpha_val, proton_val, scatter_num))
+    def add_particle(self, alpha_val: float, proton_vals: list[float], particle_id: int = 0) -> None:
+        self._particle_results.append(ScatteredDeposit(alpha_val, proton_vals, particle_id))
 
     def add_deposit(self, deposit: ScatteredDeposit) -> None:
         self._particle_results.append(deposit)
@@ -222,9 +222,10 @@ class GPUSim:
         for alpha in scatter_points.keys():
             # get the indices of the scatters for the current alpha
             scatters = scatter_points[alpha]
+            particle_result = ScatteredDeposit(0, list(), alpha)
 
             # initialize the variables
-            scatter_num = 0
+            #scatter_num = 0
             # always get the first scatter
             step = 0
             # now iterare through the scattered indices
@@ -239,23 +240,20 @@ class GPUSim:
                     transf = energy_transfer(self.alpha_path[s], scatter_angle)
 
                     # record the scatter energy information
-                    self._particle_results.append(ScatteredDeposit(transf.e_alpha, transf.e_proton, scatter_num))
+                    #self._particle_results.append(ScatteredDeposit(transf.e_alpha,
+                    #transf.e_proton, scatter_num))
+                    particle_result.alpha_energy = transf.e_alpha
+                    particle_result.proton_energies.append(transf.e_proton)
 
                     # and now jump ahead in the alpha path 
                     step = find_nearest_idx(self.alpha_path, transf.e_alpha)
 
                     # and incremement the scatter number for later tracking
-                    scatter_num += 1
+                    #scatter_num += 1
+            self._particle_results.append(particle_result)
 
-                
-
-    def alpha_quenched_value(self, alpha_deps, alpha_factor = 1.0):
-        # want the factor to be one here - so later we can plot for different
-        # quenching factors
-        return alpha_factor*cp.sum(cp.abs(cp.diff(alpha_deps)))
-        
     def fill_spectrum(self):
-        qv = self.alpha_factor*np.abs(np.sum(np.diff(self.alpha_path)))
+        qv = self.alpha_factor*self.e_0
 
         # fills the spectrum for loaded data 
         alphas_left = self.num_alphas - len(self.quenched_spec)
@@ -264,13 +262,8 @@ class GPUSim:
             self._quenched_spec.append(qv)
         
     def quenched_spectrum(self):
-        if len(self.particle_results) != 0:
-            alpha_sim = np.zeros(len(self.particle_results))
-            proton_sim = []
-            for d in self.particle_results:
-                #alpha_sim.append(d.alpha_energy)
-                proton_sim.append(d.proton_energy)
-            self._quenched_spec.extend(np.add(np.multiply(self.alpha_factor, alpha_sim), np.multiply(self.proton_q_factor, proton_sim)))
+        for p in self._particle_results:
+            self.quenched_spec.append(self.alpha_factor*p.alpha_energy + self.proton_q_factor*sum(p.proton_energies))
 
     def detsim(self):
         self._result = [random.gauss(e_i*parameters.nhit, np.sqrt(e_i*parameters.nhit))/parameters.nhit for e_i in self._quenched_spec]

@@ -5,7 +5,8 @@ from numpy import pi
 # really speeds things up and also when it has that little energy the
 # scatters are going to be negligible
 table_min = pi/4
-theta_min = pi/12
+#theta_min = pi/12
+theta_min = pi/4
 theta_max = pi
 
 epsilon = 0.1

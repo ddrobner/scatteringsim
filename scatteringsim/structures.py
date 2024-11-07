@@ -13,16 +13,17 @@ class AlphaEvent:
     proton_scatters: list[float]
     scatter_energy: list[ScatterFrame]
 
-class TrackedScatter(float):
-    def __init__(self, val, scatter):
-        self._scatter = scatter
-        super(float, val)
-
-    def __new__(cls, val):
-        return float.__new__(cls, float(val))
 
 @dataclass
 class ScatteredDeposit:
     alpha_energy: float32
-    proton_energy: float32
-    scatter_number: int
+    proton_energies: list[float32]
+    particle_id: int
+
+    def __post_init__(self):
+        if self.proton_energies is None:
+            self.proton_energies = []
+    
+    @property
+    def num_scatters(self):
+        return len(self.proton_energies)
