@@ -6,13 +6,30 @@ from pathlib import Path
 from scatteringsim.constants import *
 from scatteringsim.structures import ScatterFrame
 
-def read_stopping_power(filename) -> pd.DataFrame:
+def read_stopping_power(filename: str) -> pd.DataFrame:
+    """Reads stopping power tables
+
+    Args:
+        filename (str): The cross section table filename
+
+    Returns:
+        pd.DataFrame: A dataframe with the table data
+    """
     stoppingpowers = pd.read_csv(Path(filename))
     # rename cols to make them easier to reference
     stoppingpowers.columns = ["KE", "electron", "nuclear", "total"]
     return stoppingpowers
 
 def stp_interp(energy:float, stp: pd.DataFrame) -> np.float32:
+    """Interpolates stopping power
+
+    Args:
+        energy (float): Energy
+        stp (pd.DataFrame): The stopping power dataframe
+
+    Returns:
+        np.float32: The stopping power value at the given energy
+    """
     # NOTE this assumes that the stopping powers are sorted
     # we get them this way from ASTAR so it's not an issue, but we can fix that if need be
     for k in stp.index:
@@ -21,7 +38,18 @@ def stp_interp(energy:float, stp: pd.DataFrame) -> np.float32:
         else:
             return ((list(stp["total"])[-1])/list(stp["KE"])[-1])*energy
 
-def gen_alpha_path(e_0, stp, epsilon=0.1, stepsize=0.001) -> npt.NDArray[np.float32]:
+def gen_alpha_path(e_0: float, stp: pd.DataFrame, epsilon=0.1, stepsize=0.001) -> npt.NDArray[np.float32]:
+    """Generates alpha energy deposits
+
+    Args:
+        e_0 (float): The initial alpha energy
+        stp (pd.DataFrame): Stopping power
+        epsilon (float, optional): Min value to stop at. Defaults to 0.1.
+        stepsize (float, optional): The stepsize. Defaults to 0.001.
+
+    Returns:
+        npt.NDArray[np.float32]: An array of the alpha deposits
+    """
     e_i = e_0
     alpha_path = []
     while e_i > epsilon:
@@ -47,7 +75,16 @@ def energy_transfer(e_alpha: float, scatter_angle: float) -> ScatterFrame:
 
     return ScatterFrame(np.float32(ealpha_f), np.float32(eproton_f), np.float32(Theta))
 
-def find_nearest_idx(arr, val):
+def find_nearest_idx(arr: np.ndarray, val: float) -> int:
+    """Finds closest index to value
+
+    Args:
+        arr (_type_): The array to search
+        val (_type_): The value to look for
+
+    Returns:
+        int: Closest index
+    """
     arr = np.asarray(arr)
     idx = (np.abs(arr - val)).argmin()
     return idx
