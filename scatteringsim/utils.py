@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import numpy.typing as npt
 
-from bisect import bisect_left
-
 from pathlib import Path
 from scatteringsim.constants import *
 from scatteringsim.structures import ScatterFrame
@@ -89,7 +87,8 @@ def find_nearest_idx(arr: np.ndarray, val: float) -> int:
     """
     #arr = np.asarray(arr)
     #idx = (np.abs(arr - val)).argmin()
-    return bisect_left(arr, val)
+    inv_idx = np.searchsorted(arr[::-1], val)
+    return len(arr) - inv_idx
 
 def transform_energies(alpha_energy_lab: np.float32):
     """Changes from lab frame to CM-frame
