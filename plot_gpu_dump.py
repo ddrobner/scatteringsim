@@ -38,6 +38,7 @@ for i_f in args.input.iterdir():
             except EOFError:
                 break
 
+n_scatters = len(s.particle_results)
 s.quenched_spectrum()
 if(args.fill):
     s.fill_spectrum()
@@ -62,3 +63,5 @@ ax.set_xlabel("Energy (MeV)")
 ax.set_ylabel("Count")
 fig.tight_layout()
 fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png")
+
+print(f"Reaction Yield: {n_scatters/s.numalphas}")
