@@ -236,14 +236,15 @@ class GPUSim:
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
                     scatter_angle = self.scattering_angle(step_energy)
 
+                    if step_energy < parameters.scatter_e_min:
+                        continue
+
                     # the energy transfer is done in the lab frame
                     transf = energy_transfer(self.alpha_path[s], scatter_angle)
 
                     # record the scatter energy information
                     #self._particle_results.append(ScatteredDeposit(transf.e_alpha,
                     #transf.e_proton, scatter_num))
-                    if transf.e_proton < parameters.scatter_e_min:
-                        continue
                     particle_result.alpha_energy = transf.e_alpha
                     particle_result.proton_energies.append(transf.e_proton)
 
