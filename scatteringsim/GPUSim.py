@@ -242,6 +242,8 @@ class GPUSim:
                     # record the scatter energy information
                     #self._particle_results.append(ScatteredDeposit(transf.e_alpha,
                     #transf.e_proton, scatter_num))
+                    if transf.e_proton < parameters.scatter_e_min:
+                        continue
                     particle_result.alpha_energy = transf.e_alpha
                     particle_result.proton_energies.append(transf.e_proton)
 

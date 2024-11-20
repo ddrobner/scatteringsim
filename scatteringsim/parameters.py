@@ -9,6 +9,8 @@ table_min = pi/4
 theta_min = pi/4
 theta_max = pi
 
+scatter_e_min = 0.95
+
 epsilon = 0.1
 
 nhit = 200
