@@ -97,9 +97,16 @@ def transform_energies(alpha_energy_lab: np.float32):
         alpha_energy (np.float32): The alpha energy (initial proton energy
         assumed to be zero) 
     """
-    palpha_lab = -1*np.sqrt(2*m_alpha*alpha_energy_lab*mev_to_j)
-    v_cm = palpha_lab/(m_alpha + m_proton)
-    step_energy = 0.5*m_proton*np.power(v_cm, 2)
-    e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
+    #palpha_lab = -1*np.sqrt(2*m_alpha*alpha_energy_lab*mev_to_j)
+    #v_cm = palpha_lab/(m_alpha + m_proton)
+    #step_energy = 0.5*m_proton*np.power(v_cm, 2)
+    #e_alpha = 0.5*m_alpha*np.power(v_cm + palpha_lab/m_alpha, 2)
+    palpha_lab = np.sqrt(2*m_alpha*alpha_energy_lab*mev_to_j)
+    valpha_lab = palpha_lab/m_alpha
+    valpha_cmf = palpha_lab*(m_proton/(m_alpha*(m_alpha + m_proton)))
+    vproton_cmf = -1*palpha_lab/(m_alpha+m_proton)
 
-    return (step_energy*j_to_mev, e_alpha*j_to_mev)
+    eproton_cmf = 0.5*m_proton*np.power(vproton_cmf, 2)
+    ealpha_cmf = 0.5*m_alpha*np.power(valpha_cmf, 2)
+    
+    return (eproton_cmf*j_to_mev, ealpha_cmf*j_to_mev)

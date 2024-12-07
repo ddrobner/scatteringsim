@@ -193,6 +193,7 @@ class GPUSim:
             scale = self.cx_interpolator([(ke, i) for i in np.linspace(parameters.theta_min, parameters.theta_max, 10)]).max()
             return (1/scale)*cx_pt 
         return cx_pt 
+        
 
     def particle_sim(self):
         """Runs the particle simulation step on the GPU. Computes only the
@@ -235,9 +236,6 @@ class GPUSim:
                     # the scattering angles comes from the proton energy in the CM-frame
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
                     scatter_angle = self.scattering_angle(step_energy)
-
-                    if step_energy < parameters.scatter_e_min:
-                        continue
 
                     # the energy transfer is done in the lab frame
                     transf = energy_transfer(self.alpha_path[s], scatter_angle)

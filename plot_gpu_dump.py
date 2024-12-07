@@ -6,6 +6,7 @@ from math import floor, log
 import matplotlib.pyplot as plt
 
 from scatteringsim.structures import ScatteredDeposit
+from scatteringsim import parameters
 
 import argparse
 import pickle
@@ -64,4 +65,13 @@ ax.set_ylabel("Count")
 fig.tight_layout()
 fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png")
 
-print(f"Reaction Yield: {n_scatters/s.numalphas}")
+min_scatters = 0
+total_scatters = s.numalphas
+for sc in s.particle_results:
+    for e in sc.proton_energies:
+        if e > parameters.scatter_e_min:
+            min_scatters += 1
+
+print(f"Reaction Yield: {100 * (min_scatters/total_scatters)}")
+
+#print(f"Reaction Yield: {100*n_scatters/s.numalphas}%")
