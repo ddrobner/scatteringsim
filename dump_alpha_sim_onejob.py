@@ -24,7 +24,7 @@ s = GPUSim(args.energy, args.batchsize, args.stepsize, args.stoppingpower, args.
 
 # dump sim parameters to a metadata file
 run_info = {"num_alphas": args.num_alphas, "stepsize": args.stepsize, "stoppingpower": args.stoppingpower, "cross_section": args.crosssection, "energy": args.energy, "timestamp": current_timestamp()}
-with open(args.output/"run_info", 'wb') as f:
+with open(args.output/"run_info.pkl", 'wb') as f:
    pickle.dump(run_info, f) 
 
 # if batchsize is -1 get number of alphas from gpusim
@@ -51,7 +51,7 @@ while num_alphas_run < sim_alphas:
         s.numalphas = sim_alphas - num_alphas_run
     s.particle_sim()
     if (len(s.particle_results) > 0):
-        with open(args.output/str(run_num), 'wb') as f:
+        with open(args.output/f"{str(run_num)}.pkl", 'wb') as f:
             # pickle allows you to load incrementally if you write incrementally :)
             # so I can write one alpha at a time to the file, and load it as such in the future
             pickler = pickle.Pickler(f)

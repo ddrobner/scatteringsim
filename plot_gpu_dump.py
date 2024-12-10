@@ -22,13 +22,13 @@ parser.add_argument('-p', '--file-prefix', type=str)
 
 args = parser.parse_args()
 
-with open(args.input/"run_info", 'rb') as f:
+with open(args.input/"run_info.pkl", 'rb') as f:
     run_info : dict = pickle.load(f) 
 
 s = GPUSim(run_info['energy'], run_info['num_alphas'], run_info['stepsize'], run_info['stoppingpower'], run_info['cross_section'], proton_factor=args.quenching)
 
 for i_f in args.input.iterdir():
-    if i_f.name == "run_info":
+    if i_f.name == "run_info.pkl":
         continue
     with open(i_f, 'rb') as f:
         up = pickle.Unpickler(f)
@@ -68,9 +68,7 @@ fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png
 min_scatters = 0
 total_scatters = s.numalphas
 for sc in s.particle_results:
-    for e in sc.proton_energies:
-        if e > parameters.scatter_e_min:
-            min_scatters += 1
+    print(sc.proton_energies)
 
 print(f"Reaction Yield: {100 * (min_scatters/total_scatters)}")
 
