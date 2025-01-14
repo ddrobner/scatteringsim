@@ -4,6 +4,5 @@ numpy
 matplotlib
 tqdm
 uproot
-fastrand
 cupy
 line_profiler

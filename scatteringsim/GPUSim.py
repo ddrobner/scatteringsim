@@ -2,8 +2,6 @@ import warnings
 
 warnings.simplefilter(action='ignore', category=UserWarning)
 
-import fastrand
-
 import cupy as cp
 import numpy as np
 import pandas as pd
