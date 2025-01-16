@@ -87,5 +87,5 @@ scattered = total_alphas - no_scatter
 print(f"Info:")
 print(f"Total No Scatter: {no_scatter}")
 print(f"Total/Fraction Scatter: {scattered} / {scattered/run_info['num_alphas']}")
-print(f"Total/Fraction > 1 Scatters: {double_scatter}" / {scattered/run_info['num_alphas']})
-print(f"Total/Fraction > 2 Scatters: {triple_scatter}" / {scattered/run_info['num_alphas']})
+print(f"Total/Fraction > 1 Scatters: {double_scatter} / {scattered/run_info['num_alphas']}")
+print(f"Total/Fraction > 2 Scatters: {triple_scatter} / {scattered/run_info['num_alphas']}")
