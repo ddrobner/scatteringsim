@@ -65,11 +65,26 @@ ax.set_ylabel("Count")
 fig.tight_layout()
 fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png")
 
-min_scatters = 0
-total_scatters = s.numalphas
+total_alphas = len(s.particle_results)
+no_scatter = 0
+double_scatter = 0
+triple_scatter = 0
+
 for sc in s.particle_results:
-    print(sc.proton_energies)
+    if len(sc.proton_energies) == 0:
+        no_scatter += 1
+    
+    if len(sc.proton_energies) > 1:
+        double_scatter += 1
+    
+    if len(sc.proton_energies) > 2:
+        triple_scatter += 1
+    
+    
 
-print(f"Reaction Yield: {100 * (min_scatters/total_scatters)}")
-
-#print(f"Reaction Yield: {100*n_scatters/s.numalphas}%")
+scattered = total_alphas - no_scatter
+print(f"Info:")
+print(f"Total No Scatter: {no_scatter}")
+print(f"Total/Fraction Scatter: {scattered} / {scattered/run_info['num_alphas']}")
+print(f"Total/Fraction > 1 Scatters: {double_scatter}" / {scattered/run_info['num_alphas']})
+print(f"Total/Fraction > 2 Scatters: {triple_scatter}" / {scattered/run_info['num_alphas']})
