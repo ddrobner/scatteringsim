@@ -83,5 +83,5 @@ for sc in s.particle_results:
 print(f"Info:")
 print(f"Total No Scatter: {no_scatter}")
 print(f"Total/Fraction Scatter: {scattered} / {scattered/run_info['num_alphas']}")
-print(f"Total/Fraction > 1 Scatters: {double_scatter} / {scattered/run_info['num_alphas']}")
-print(f"Total/Fraction > 2 Scatters: {triple_scatter}/ {scattered/run_info['num_alphas']}")
+print(f"Total/Fraction > 1 Scatters: {double_scatter} / {double_scatter/run_info['num_alphas']}")
+print(f"Total/Fraction > 2 Scatters: {triple_scatter}/ {triple_scatter/run_info['num_alphas']}")
