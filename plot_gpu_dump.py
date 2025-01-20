@@ -73,10 +73,12 @@ triple_scatter = 0
 
 for sc in s.particle_results:
     if len(sc.proton_energies) > 1:
-        double_scatter += 1
+        if sc.proton_energies[1] >= parameters.scatter_e_min:
+            double_scatter += 1
     
     if len(sc.proton_energies) > 2:
-        triple_scatter += 1
+        if sc.proton_energies[2] >= parameters.scatter_e_min:
+            triple_scatter += 1
     
     
 
