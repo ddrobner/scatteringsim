@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import numpy as np
 
 cx_tups = []
 
@@ -15,8 +16,12 @@ with open(sys.argv[1], 'r') as f:
             ek = 0
         else:
             line_arr = l.rstrip().split("   ")
-            ang = float(line_arr[0].replace(" ",""))
+            ang = np.deg2rad(float(line_arr[0].replace(" ","")))
+            #ang = 2*np.rad2deg(np.arccos(1 - ang/(2*np.pi)))
+            ang = np.rad2deg(2*np.pi*np.arcsin(ang/(2*np.pi)))
             cx = float(line_arr[1].replace(" ", ""))
+            # convert cx from mb to b
+            cx = 0.01*cx
             cx_tups.append((ek, ang, cx))
 
 cx_df = pd.DataFrame(cx_tups, columns=['energy','theta','cx'])
