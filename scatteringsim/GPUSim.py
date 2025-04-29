@@ -62,6 +62,7 @@ class GPUSim:
                 theta_vals = np.array([self.cx_interpolator((e, i)) for i in angle_vals])
                 self.cx_inverse_dists[e] = sim_init.gen_inverse_dist(angle_vals, theta_vals)
                 #self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
+        # don't want to recompute this every time
 
         # scale number of alphas based on total GPU mem
         # we do this after everything else is initalized so we know how much
@@ -141,8 +142,7 @@ class GPUSim:
     def scattering_angle(self, ke) -> np.float32:
         # this might be a cheat but I think I'm going to just interpolate
         # between the inverse dist values for each KE
-        dk = list(self.cx_inverse_dists.keys())
-        dk.sort()
+        dk = self.cx_dist_keys
 
         rsaved = random.uniform(0, 1)
         
