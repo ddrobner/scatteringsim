@@ -58,7 +58,7 @@ class GPUSim:
         self.cx_inverse_dists = dict()
         for e in self.cx['energy'].unique():
             if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
-                angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 10000)
+                angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 100)
                 theta_vals = np.array([self.cx_interpolator((e, i)) for i in angle_vals])
                 self.cx_inverse_dists[e] = sim_init.gen_inverse_dist(angle_vals, theta_vals)
                 #self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
