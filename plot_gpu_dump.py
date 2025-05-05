@@ -20,7 +20,7 @@ parser.add_argument('-q', '--quenching', type=float, default=0.4)
 parser.add_argument('-f', '--fill', action=argparse.BooleanOptionalAction)
 parser.add_argument('-p', '--file-prefix', type=str)
 parser.add_argument('--bins', default=30, type=int)
-parser.add_argument('--report', action='store_true')
+parser.add_argument('--stats', action='store_true')
 
 args = parser.parse_args()
 
@@ -69,7 +69,7 @@ ax.set_ylabel("Count")
 fig.tight_layout()
 fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png")
 
-if args.report:
+if args.stats:
     total_alphas = run_info['num_alphas']
     scattered = 0
     no_scatter = total_alphas - scattered
