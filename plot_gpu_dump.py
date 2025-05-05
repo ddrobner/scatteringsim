@@ -71,25 +71,31 @@ fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png
 
 if args.stats:
     total_alphas = run_info['num_alphas']
-    scattered = 0
-    no_scatter = total_alphas - scattered
-    double_scatter = 0
-    triple_scatter = 0
+
+    scatter_counts_cut = {1:0, 2:0, 3:0}
+    scatter_counts = {1:0, 2:0, 3:0}
 
     for sc in s.particle_results:
         if (len(sc.proton_energies) > 0) and  (sc.proton_energies[0] >= parameters.scatter_e_min):
-            scattered += 1
+            scatter_counts_cut[1] += 1
+        scatter_counts[1] += 1
 
         if len(sc.proton_energies) > 1:
             if sc.proton_energies[1] >= parameters.scatter_e_min:
-                double_scatter += 1
+                scatter_counts_cut[2] += 1
+            scatter_counts[2] += 1
         
         if len(sc.proton_energies) > 2:
             if sc.proton_energies[2] >= parameters.scatter_e_min:
-                triple_scatter += 1
+                scatter_counts_cut[3] += 1
+            scatter_counts[3] += 1
 
     print(f"Info:")
-    print(f"Total No Scatter: {no_scatter}")
-    print(f"Total/Fraction Scatter: {scattered} / {scattered/run_info['num_alphas']}")
-    print(f"Total/Fraction > 1 Scatters: {double_scatter} / {double_scatter/run_info['num_alphas']}")
-    print(f"Total/Fraction > 2 Scatters: {triple_scatter}/ {triple_scatter/run_info['num_alphas']}")
+    print(f"Total No Scatter: {run_info['num_alphas'] - scatter_counts[1]}")
+    print(f"Total/Fraction Scatter: {scatter_counts[1]} / {scatter_counts[1]/run_info['num_alphas']}")
+    print(f"Total/Fraction > 1 Scatters: {scatter_counts[2]} / {scatter_counts[2]/run_info['num_alphas']}")
+    print(f"Total/Fraction > 2 Scatters: {scatter_counts[3]}/ {scatter_counts[3]/run_info['num_alphas']}")
+    print()
+    print(f"Total/Fraction Scatter < 0.95 MeV: {scatter_counts_cut[1]} / {scatter_counts_cut[1]/run_info['num_alphas']}")
+    print(f"Total/Fraction > 1 Scatters < 0.95 MeV: {scatter_counts_cut[2]} / {scatter_counts_cut[2]/run_info['num_alphas']}")
+    print(f"Total/Fraction > 2 Scatters < 0.95 MeV: {scatter_counts_cut[3]}/ {scatter_counts_cut[3]/run_info['num_alphas']}")
