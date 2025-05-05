@@ -53,16 +53,19 @@ class GPUSim:
         self.alpha_steps = len(self.alpha_path)
         
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
-
         self.alpha_path_gpu = cp.array(self.alpha_path)
         self.cx_inverse_dists = dict()
         for e in self.cx['energy'].unique():
             if(len(self.cx[self.cx['energy'] == e]['theta']) > 3):
-                angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 100)
+                angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 10000)
                 theta_vals = np.array([self.cx_interpolator((e, i)) for i in angle_vals])
                 self.cx_inverse_dists[e] = sim_init.gen_inverse_dist(angle_vals, theta_vals)
                 #self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
+        
+
         # don't want to recompute this every time
+        self.cx_dist_keys = list(self.cx_inverse_dists.keys())
+        self.cx_dist_keys.sort()
 
         # scale number of alphas based on total GPU mem
         # we do this after everything else is initalized so we know how much
@@ -76,7 +79,7 @@ class GPUSim:
             self.num_alphas = num_alphas
 
         #print(f"Simulating {self.num_alphas} alpha particles!")
-        
+
         # and set up class variable to store the outputs
         self._particle_results : list[ScatteredDeposit] = []
         self._quenched_spec = [] 
@@ -208,10 +211,6 @@ class GPUSim:
         # now, we take the array of nonzero indices and compute the scatters on
         # the CPU
 
-        #print("Done GPU Particle Sim Step")
-        #if not (scatter_alpha.any() or scatter_step.any()):
-        #    return
-
         # group up the scatter indices
         scatter_points = {int(a.get()):list() for a in scatter_alpha}
         for a, idx in zip(scatter_alpha, scatter_step):
@@ -224,15 +223,20 @@ class GPUSim:
             particle_result = ScatteredDeposit(0, list(), alpha)
 
             # initialize the variables
-            #scatter_num = 0
+            scatter_num = 0
             # always get the first scatter
             step = 0
             # now iterare through the scattered indices
             for s in scatters:
+                if scatter_num >= 2:
+                    continue
                 # check if we've jumped ahead of the scatter index
                 if step < s:
-                    # the scattering angles comes from the proton energy in the CM-frame
+                    # the scattering angles comes from the proton energy in the
+                    # CM-frame
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
+                    # round the step energy to look it up in the table
+                    step_energy = np.round(step_energy, 2)
                     scatter_angle = self.scattering_angle(step_energy)
 
                     # the energy transfer is done in the lab frame
@@ -248,7 +252,7 @@ class GPUSim:
                     step = find_nearest_idx(self.alpha_path, transf.e_alpha)
 
                     # and incremement the scatter number for later tracking
-                    #scatter_num += 1
+                    scatter_num += 1
             self._particle_results.append(particle_result)
 
     def fill_spectrum(self):
