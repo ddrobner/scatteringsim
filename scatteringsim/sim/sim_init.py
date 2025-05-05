@@ -42,7 +42,12 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
     cx = cx.groupby("energy").filter(lambda x: len(x) > 3)
     cx['theta'] = np.deg2rad(cx['theta'])
     cx = cx[cx['theta'] >= parameters.table_min]
+    cx = cx[cx['energy'] <= parameters.e_max]
+    #cx = cx[cx['energy'] % 0.5 == 0]
     cx.reset_index(inplace=True, drop=True)
+
+    #scale mb/sr to b/sr
+    cx['cx'] = cx['cx']*0.001
 
     cx.sort_values(['energy', 'theta'], ignore_index=True, ascending=[True, True], inplace=True)
     cx.reset_index(drop=True, inplace=True)
@@ -112,7 +117,9 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
             itg = np.trapz(dcx, angles)
             if(itg != 0):
                 temp_es.append(e)
+                #temp_cx.append(itg*(np.pi/180))
                 temp_cx.append(itg)
+
     total_cx = pd.DataFrame(zip(temp_es, temp_cx), columns=['Energy', 'Total'])
     del temp_es
     del temp_cx
