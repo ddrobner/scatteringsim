@@ -19,6 +19,8 @@ parser.add_argument('-i', '--input', type=Path)
 parser.add_argument('-q', '--quenching', type=float, default=0.4)
 parser.add_argument('-f', '--fill', action=argparse.BooleanOptionalAction)
 parser.add_argument('-p', '--file-prefix', type=str)
+parser.add_argument('--bins', default=30, type=int)
+parser.add_argument('--report', action='store_true')
 
 args = parser.parse_args()
 
@@ -39,6 +41,8 @@ for i_f in args.input.iterdir():
             except EOFError:
                 break
 
+n_bins = args.bins
+
 n_scatters = len(s.particle_results)
 s.quenched_spectrum()
 if(args.fill):
@@ -52,7 +56,7 @@ def human_format(number):
     return '{}{}'.format(int(number / k**magnitude), units[magnitude])
 
 print(f"Result len: {len(s.result)}")
-counts, bins = histogram(s.result, 30, range=(0,max(s.result)))
+counts, bins = histogram(s.result, n_bins, range=(0,max(s.result)))
 fig, ax = plt.subplots()
 ax.hist(bins[:-1], bins, weights=counts, rwidth=0.8)
 plt.yscale('log')
@@ -65,28 +69,27 @@ ax.set_ylabel("Count")
 fig.tight_layout()
 fig.savefig(f"{args.file_prefix}_{str(s.quenching_factor).replace('.', 'p')}.png")
 
-total_alphas = run_info['num_alphas']
-scattered = 0
-no_scatter = total_alphas - scattered
-double_scatter = 0
-triple_scatter = 0
+if args.report:
+    total_alphas = run_info['num_alphas']
+    scattered = 0
+    no_scatter = total_alphas - scattered
+    double_scatter = 0
+    triple_scatter = 0
 
-for sc in s.particle_results:
-    if (len(sc.proton_energies) > 0) and  (sc.proton_energies[0] >= parameters.scatter_e_min):
-        scattered += 1
+    for sc in s.particle_results:
+        if (len(sc.proton_energies) > 0) and  (sc.proton_energies[0] >= parameters.scatter_e_min):
+            scattered += 1
 
-    if len(sc.proton_energies) > 1:
-        if sc.proton_energies[1] >= parameters.scatter_e_min:
-            double_scatter += 1
-    
-    if len(sc.proton_energies) > 2:
-        if sc.proton_energies[2] >= parameters.scatter_e_min:
-            triple_scatter += 1
-    
-    
+        if len(sc.proton_energies) > 1:
+            if sc.proton_energies[1] >= parameters.scatter_e_min:
+                double_scatter += 1
+        
+        if len(sc.proton_energies) > 2:
+            if sc.proton_energies[2] >= parameters.scatter_e_min:
+                triple_scatter += 1
 
-print(f"Info:")
-print(f"Total No Scatter: {no_scatter}")
-print(f"Total/Fraction Scatter: {scattered} / {scattered/run_info['num_alphas']}")
-print(f"Total/Fraction > 1 Scatters: {double_scatter} / {double_scatter/run_info['num_alphas']}")
-print(f"Total/Fraction > 2 Scatters: {triple_scatter}/ {triple_scatter/run_info['num_alphas']}")
+    print(f"Info:")
+    print(f"Total No Scatter: {no_scatter}")
+    print(f"Total/Fraction Scatter: {scattered} / {scattered/run_info['num_alphas']}")
+    print(f"Total/Fraction > 1 Scatters: {double_scatter} / {double_scatter/run_info['num_alphas']}")
+    print(f"Total/Fraction > 2 Scatters: {triple_scatter}/ {triple_scatter/run_info['num_alphas']}")
