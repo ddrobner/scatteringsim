@@ -21,6 +21,7 @@ parser.add_argument('-f', '--fill', action=argparse.BooleanOptionalAction)
 parser.add_argument('-p', '--file-prefix', type=str)
 parser.add_argument('--bins', default=30, type=int)
 parser.add_argument('--stats', action='store_true')
+parser.add_argument('--low_cut', default=0.0, type=float)
 
 args = parser.parse_args()
 
@@ -37,7 +38,8 @@ for i_f in args.input.iterdir():
         while True:
             try:
                 p_data = up.load()
-                s.add_deposit(p_data)
+                if max(p_data.proton_energies) > args.low_cut:
+                    s.add_deposit(p_data)
             except EOFError:
                 break
 
