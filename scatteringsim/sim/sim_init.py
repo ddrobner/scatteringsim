@@ -38,7 +38,7 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
 
     # converting to radians
     # NOTE this means we need to scale the cx when integrating by 
-    # 180/pi due to the transformation
+    # pi/180 due to the transformation
     cx = cx.groupby("energy").filter(lambda x: len(x) > 3)
     cx['theta'] = np.deg2rad(cx['theta'])
     cx = cx[cx['theta'] >= parameters.table_min]
