@@ -220,14 +220,15 @@ class GPUSim:
         for alpha in scatter_points.keys():
             # get the indices of the scatters for the current alpha
             scatters = scatter_points[alpha]
-            particle_result = ScatteredDeposit(0, list(), alpha)
+            particle_result = ScatteredDeposit([0], list(), list(), alpha)
 
             # initialize the variables
             scatter_num = 0
             # always get the first scatter
             step = 0
-            # now iterare through the scattered indices
+            # now iterate through the scattered indices
             for s in scatters:
+                particle_result.alpha_indices.append(s)
                 if scatter_num >= 2:
                     continue
                 # check if we've jumped ahead of the scatter index
@@ -253,6 +254,8 @@ class GPUSim:
 
                     # and incremement the scatter number for later tracking
                     scatter_num += 1
+                else:
+                    particle_result.alpha_indices.append(s+1)
             self._particle_results.append(particle_result)
 
     def fill_spectrum(self):
@@ -265,8 +268,15 @@ class GPUSim:
             self._quenched_spec.append(qv)
         
     def quenched_spectrum(self):
+        last_alpha_energy = self.e_0
         for p in self._particle_results:
-            self.quenched_spec.append(self.alpha_factor*p.alpha_energy + self.proton_q_factor*sum(p.proton_energies))
+            idx = 0
+            while idx < len(p.alpha_indices):
+                p.alpha_energies.append(last_alpha_energy - self.alpha_path[idx]) 
+                last_alpha_energy = self.alpha_path[idx]
+                idx += 1
+            p.alpha_energies.append(last_alpha_energy - self.alpha_path[-1])
+            self.quenched_spec.append(self.alpha_factor*sum(p.alpha_energies) + self.proton_q_factor*sum(p.proton_energies))
 
     def detsim(self):
         self._result = [random.gauss(e_i*parameters.nhit, np.sqrt(e_i*parameters.nhit))/parameters.nhit for e_i in self._quenched_spec]
