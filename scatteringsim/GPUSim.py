@@ -56,12 +56,11 @@ class GPUSim:
         self.alpha_path_gpu = cp.array(self.alpha_path)
         self.cx_inverse_dists = dict()
         for e in self.cx['energy'].unique():
-            if(len(self.cx[self.cx['energy'] == e]['theta']) > 3 and (e % 0.05 == 0)):
+            if(e % 0.05 < 0.001):
                 angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 10000)
                 theta_vals = np.array([self.cx_interpolator((e, i)) for i in angle_vals])
                 self.cx_inverse_dists[e] = sim_init.gen_inverse_dist(angle_vals, theta_vals)
                 #self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
-        
 
         # don't want to recompute this every time
         self.cx_dist_keys = list(self.cx_inverse_dists.keys())
@@ -148,8 +147,8 @@ class GPUSim:
         dk = self.cx_dist_keys
 
         rsaved = random.uniform(0, 1)
-        
-        return np.interp(ke, dk, [self.cx_inverse_dists[i](rsaved) for i in dk])
+        nearest = np.searchsorted(dk, ke)
+        return self.cx_inverse_dists[dk[nearest]](rsaved)
 
     def gen_dist_samples(self, ke, nsamples):
         samples = [self.scattering_angle(ke) for i in range(nsamples)]

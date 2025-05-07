@@ -16,7 +16,8 @@ class AlphaEvent:
 
 @dataclass
 class ScatteredDeposit:
-    alpha_energy: float32
+    alpha_indices: list[int]
+    alpha_energies: list[float32]
     proton_energies: list[float32]
     particle_id: int
 
