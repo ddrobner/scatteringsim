@@ -45,6 +45,9 @@ num_alphas_run = 0
 
 progress_bar = tqdm(total=sim_alphas)
 
+# TODO we store far less information now, look into reducing the number of files
+# written for a potential speedup
+
 run_num = 0
 while num_alphas_run < sim_alphas:
     if num_alphas_run + batchsize > sim_alphas:
