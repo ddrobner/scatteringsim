@@ -47,6 +47,7 @@ progress_bar = tqdm(total=sim_alphas)
 
 # TODO we store far less information now, look into reducing the number of files
 # written for a potential speedup
+output = []
 
 run_num = 0
 while num_alphas_run < sim_alphas:
@@ -54,6 +55,8 @@ while num_alphas_run < sim_alphas:
         s.numalphas = sim_alphas - num_alphas_run
     s.particle_sim()
     if (len(s.particle_results) > 0):
+        output.extend(s.particle_results)
+        """
         with open(args.output/f"{str(run_num)}.pkl", 'wb') as f:
             # pickle allows you to load incrementally if you write incrementally :)
             # so I can write one alpha at a time to the file, and load it as such in the future
@@ -61,9 +64,12 @@ while num_alphas_run < sim_alphas:
             while len(s.particle_results) > 0:
                 pickler.dump(s.particle_results[0])
                 s.pop_particle(0)
+        """
     s.reset_sim()
     num_alphas_run += batchsize
     progress_bar.update(batchsize)
     run_num += 1
+with open(args.output/"run_output.pkl", 'wb') as f:
+    pickle.dump(output, f)
 
 progress_bar.close()

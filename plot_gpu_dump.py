@@ -30,6 +30,7 @@ with open(args.input/"run_info.pkl", 'rb') as f:
 
 s = GPUSim(run_info['energy'], run_info['num_alphas'], run_info['stepsize'], run_info['stoppingpower'], run_info['cross_section'], proton_factor=args.quenching)
 
+"""
 for i_f in args.input.iterdir():
     if i_f.name == "run_info.pkl":
         continue
@@ -42,6 +43,12 @@ for i_f in args.input.iterdir():
                     s.add_deposit(p_data)
             except EOFError:
                 break
+"""
+with open(args.input/"run_output.pkl", 'rb') as f:
+    up = pickle.Unpickler(f)
+    p_output = up.load()
+    for p in p_output:
+        s.add_deposit(p)
 
 n_bins = args.bins
 
