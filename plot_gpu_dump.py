@@ -38,7 +38,7 @@ for i_f in args.input.iterdir():
         while True:
             try:
                 p_data = up.load()
-                if max(p_data.proton_energies) > args.low_cut:
+                if (len(p_data.proton_energies) != 0 ) and (max(p_data.proton_energies) > args.low_cut):
                     s.add_deposit(p_data)
             except EOFError:
                 break
