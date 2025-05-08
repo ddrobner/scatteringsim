@@ -257,8 +257,8 @@ class GPUSim:
                     scatter_num += 1
                 else:
                     particle_result.alpha_indices.append(s+1)
-            #if max(particle_result.proton_energies) > parameters.e_proton_min:
-            self._particle_results.append(particle_result)
+            if len(particle_result.proton_energies) != 0 and max(particle_result.proton_energies) > parameters.e_proton_min:
+                self._particle_results.append(particle_result)
 
     def fill_spectrum(self):
         qv = self.alpha_factor*self.e_0
