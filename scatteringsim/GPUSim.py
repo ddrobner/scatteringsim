@@ -237,6 +237,8 @@ class GPUSim:
                     step_energy, e_alpha = transform_energies(self.alpha_path[s]) 
                     # round the step energy to look it up in the table
                     step_energy = np.round(step_energy, 2)
+                    if (step_energy < parameters.e_proton_min) and (scatter_num == 0):
+                        continue
                     scatter_angle = self.scattering_angle(step_energy)
 
                     # the energy transfer is done in the lab frame
@@ -255,6 +257,7 @@ class GPUSim:
                     scatter_num += 1
                 else:
                     particle_result.alpha_indices.append(s+1)
+            #if max(particle_result.proton_energies) > parameters.e_proton_min:
             self._particle_results.append(particle_result)
 
     def fill_spectrum(self):

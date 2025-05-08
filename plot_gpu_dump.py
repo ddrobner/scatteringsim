@@ -48,7 +48,8 @@ with open(args.input/"run_output.pkl", 'rb') as f:
     up = pickle.Unpickler(f)
     p_output = up.load()
     for p in p_output:
-        s.add_deposit(p)
+        if (len(p.proton_energies) != 0) and (max(p.proton_energies) > args.low_cut):
+            s.add_deposit(p)
 
 n_bins = args.bins
 

@@ -41,7 +41,7 @@ def prep_cx(diff_cx: pd.DataFrame) -> dict[pd.DataFrame]:
     # pi/180 due to the transformation
     cx = cx.groupby("energy").filter(lambda x: len(x) > 3)
     cx['theta'] = np.deg2rad(cx['theta'])
-    cx = cx[cx['theta'] >= parameters.table_min]
+    cx = cx[cx['theta'] >= parameters.theta_min]
     cx = cx[cx['energy'] <= parameters.e_max]
     #cx = cx[cx['energy'] % 0.5 == 0]
     cx.reset_index(inplace=True, drop=True)

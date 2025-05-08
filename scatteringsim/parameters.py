@@ -4,10 +4,10 @@ from numpy import pi
 # energy)
 # really speeds things up and also when it has that little energy the
 # scatters are going to be negligible
-table_min = pi/4
-#theta_min = pi/12
-theta_min = pi/4
+theta_min = pi/12
 theta_max = pi
+
+e_proton_min = 0.2
 
 e_max = 9.0
 
