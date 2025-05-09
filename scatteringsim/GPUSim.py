@@ -15,6 +15,7 @@ import random
 
 from scatteringsim.utils import read_stopping_power, gen_alpha_path, energy_transfer, find_nearest_idx, transform_energies
 import scatteringsim.sim.sim_init as sim_init
+from scatteringsim.sim import uniform_cache
 
 from scatteringsim import parameters
 
@@ -73,6 +74,7 @@ class GPUSim:
             self.num_alphas = num_alphas
 
         #print(f"Simulating {self.num_alphas} alpha particles!")
+        self.unif_cache = uniform_cache.uniform_cache(self.num_alphas)
 
         # and set up class variable to store the outputs
         self._particle_results : list[ScatteredDeposit] = []
@@ -122,6 +124,8 @@ class GPUSim:
         self._quenched_spec.clear()
         self._result.clear()
 
+        self.unif_cache.reset()
+
     @property
     def energy_range(self):
         e_0 = self.cx['energy'].to_numpy().min()
@@ -137,8 +141,7 @@ class GPUSim:
         return self.cx
 
     def scattering_angle(self, ke) -> np.float32:
-        rsaved = random.uniform(0, 1)
-        return self.cx_inverse_dists[np.float32(ke)](rsaved)
+        return self.cx_inverse_dists[np.float32(ke)](self.unif_cache.get_sample())
 
     def gen_dist_samples(self, ke, nsamples):
         samples = [self.scattering_angle(ke) for i in range(nsamples)]
