@@ -28,7 +28,7 @@ args = parser.parse_args()
 with open(args.input/"run_info.pkl", 'rb') as f:
     run_info : dict = pickle.load(f) 
 
-s = GPUSim(run_info['energy'], run_info['num_alphas'], run_info['stepsize'], run_info['stoppingpower'], run_info['cross_section'], proton_factor=args.quenching)
+s = GPUSim(run_info['energy'], run_info['num_alphas'], run_info['stepsize'], run_info['stoppingpower'], run_info['cross_section'], proton_factor=args.quenching, analysis=True)
 
 """
 for i_f in args.input.iterdir():

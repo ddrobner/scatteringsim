@@ -27,7 +27,7 @@ from scatteringsim.constants import *
 
 
 class GPUSim:
-    def __init__(self, e_0: float, num_alphas: int, stepsize: float, stp_fname: str, cx_fname: str, proton_factor: float = 0.5):
+    def __init__(self, e_0: float, num_alphas: int, stepsize: float, stp_fname: str, cx_fname: str, proton_factor: float = 0.5, analysis: bool = False):
         # declaring this as a global to speed up multprocessing 
         #global alpha_path
 
@@ -52,15 +52,16 @@ class GPUSim:
         # find out how large the list of alpha deposits is so we can compute the
         # number of alphas we can fit on the GPU
         self.alpha_steps = len(self.alpha_path)
+        print(f"Alpha Path Length: {self.alpha_steps}")
         
         self.s_prob_lut = cp.array([self.scattering_probability(j) for j in self.alpha_path])
         self.alpha_path_gpu = cp.array(self.alpha_path)
-        self.cx_inverse_dists = dict()
-        for e in self.cx['energy'].unique():
-            angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 10000)
-            theta_vals = np.array([self.cx_interpolator((e, i)) for i in angle_vals])
-            self.cx_inverse_dists[e] = sim_init.gen_inverse_dist(angle_vals, theta_vals)
-            #self.cx_inverse_dists[e] = self.gen_inverse_dist(e)
+        if not analysis:
+            self.cx_inverse_dists = dict()
+            for e in self.cx['energy'].unique():
+                angle_vals = np.linspace(parameters.theta_min, parameters.theta_max, 10000)
+                theta_vals = np.array([self.cx_interpolator((e, i)) for i in angle_vals])
+                self.cx_inverse_dists[e] = sim_init.gen_inverse_dist(angle_vals, theta_vals)
 
         # scale number of alphas based on total GPU mem
         # we do this after everything else is initalized so we know how much
@@ -74,12 +75,14 @@ class GPUSim:
             self.num_alphas = num_alphas
 
         #print(f"Simulating {self.num_alphas} alpha particles!")
-        self.unif_cache = uniform_cache.uniform_cache(self.num_alphas)
+        if not analysis:
+            self.unif_cache = uniform_cache.uniform_cache(self.num_alphas)
 
         # and set up class variable to store the outputs
         self._particle_results : list[ScatteredDeposit] = []
         self._quenched_spec = [] 
         self._result = []
+        self._unfiltered_scatters = 0
 
     @property
     def particle_results(self):
@@ -92,13 +95,18 @@ class GPUSim:
     @numalphas.setter
     def numalphas(self, val):
         self.num_alphas = val
+
+    @property
+    def alphapath(self):
+        return self.alpha_path
+
+    @property
+    def unfiltered_scatters(self):
+        return self._unfiltered_scatters
     
 
     def pop_particle(self, idx: int) -> None:
         self._particle_results.pop(idx)
-
-    def add_particle(self, alpha_val: float, proton_vals: list[float], particle_id: int = 0) -> None:
-        self._particle_results.append(ScatteredDeposit(alpha_val, proton_vals, particle_id))
 
     def add_deposit(self, deposit: ScatteredDeposit) -> None:
         self._particle_results.append(deposit)
@@ -155,6 +163,10 @@ class GPUSim:
     def angles(self):
         return (parameters.theta_min, parameters.theta_max)
 
+    @property
+    def get_total_cx(self):
+        return self.total_cx
+
 
     def total_crossection(self, ke : np.float32) -> np.float32:
         """Computes the total cross section with a trapezoidal riemann sum
@@ -207,6 +219,8 @@ class GPUSim:
         scatter_points = {int(a.get()):list() for a in scatter_alpha}
         for a, idx in zip(scatter_alpha, scatter_step):
             scatter_points[int(a.get())].append(int(idx.get()))
+
+        self._unfiltered_scatters += len(list(scatter_points.keys()))
 
         # now we do the computation
         for alpha in scatter_points.keys():
